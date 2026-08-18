@@ -30,6 +30,7 @@ internal sealed class WindowsDocumentFontResolver : IFontResolver
     private const string Arial = "docconvert-arial";
     private const string ArialBold = "docconvert-arial-bold";
     private const string Chinese = "docconvert-chinese";
+    private const string ChineseBold = "docconvert-chinese-bold";
     private static readonly ConcurrentDictionary<string, byte[]> FontData = new(StringComparer.Ordinal);
 
     public FontResolverInfo ResolveTypeface(string familyName, bool isBold, bool isItalic)
@@ -37,7 +38,7 @@ internal sealed class WindowsDocumentFontResolver : IFontResolver
         var chinese = familyName.Contains("YaHei", StringComparison.OrdinalIgnoreCase)
             || familyName.Contains("黑体", StringComparison.OrdinalIgnoreCase)
             || familyName.Contains("SimHei", StringComparison.OrdinalIgnoreCase);
-        if (chinese) return new FontResolverInfo(Chinese, false, isItalic);
+        if (chinese) return new FontResolverInfo(isBold ? ChineseBold : Chinese, false, isItalic);
         return new FontResolverInfo(isBold ? ArialBold : Arial, false, isItalic);
     }
 
@@ -45,7 +46,8 @@ internal sealed class WindowsDocumentFontResolver : IFontResolver
     {
         var fileName = name switch
         {
-            Chinese => "simhei.ttf",
+            Chinese => "Deng.ttf",
+            ChineseBold => "Dengb.ttf",
             ArialBold => "arialbd.ttf",
             _ => "arial.ttf"
         };
