@@ -4,6 +4,16 @@
 
 应用不会上传文档，不覆盖原文件。转换结果使用唯一文件名；去水印结果默认增加 `_无水印` 后缀。
 
+## 下载 Windows 版
+
+**[下载安装版（MSI）](https://github.com/tian-yu200/DocConvert/releases/latest/download/DocConvert.Installer.msi)**
+
+**[下载免安装版（ZIP）](https://github.com/tian-yu200/DocConvert/releases/latest/download/DocConvert-win-x64.zip)**
+
+安装版双击 MSI 即可安装。免安装版解压 ZIP 后运行 `DocConvert.exe`。由于安装包暂未购买代码签名证书，Windows 首次运行时可能显示 SmartScreen 提示。
+
+[查看全部版本与校验文件](https://github.com/tian-yu200/DocConvert/releases)
+
 ## 功能
 
 | 输入 | 输出 | 实现方式 |
