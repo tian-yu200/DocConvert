@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DocConvert.Core;
 using PdfSharp.Drawing;
-using PdfSharp.Drawing.Layout;
 using PdfSharp.Pdf;
 
 namespace DocConvert.Infrastructure.Windows;
@@ -27,7 +29,6 @@ public sealed class PdfCreationEngine : IConversionEngine
 
     private static JobResult Convert(DocumentJobRequest request, IProgress<JobProgress>? progress, CancellationToken cancellationToken)
     {
-        PdfFontService.EnsureInitialized();
         using var workspace = new JobWorkspace(request.JobId);
         var temporary = workspace.PathFor("output.pdf");
         using var document = new PdfDocument();
@@ -75,23 +76,57 @@ public sealed class PdfCreationEngine : IConversionEngine
         var bytes = File.ReadAllBytes(inputPath);
         var encoding = DetectEncoding(bytes);
         var text = encoding.GetString(bytes).Replace("\r\n", "\n");
-        const double margin = 56.7;
-        var linesPerPage = 48;
-        var lines = WrapText(text, 52).ToList();
-        var font = new XFont("Microsoft YaHei", 10.5, XFontStyleEx.Regular);
+        const int linesPerPage = 48;
+        var lines = WrapText(text, 45).ToList();
 
         for (var offset = 0; offset < lines.Count; offset += linesPerPage)
         {
             token.ThrowIfCancellationRequested();
             var page = document.AddPage();
             page.Size = PdfSharp.PageSize.A4;
+            using var buffer = new MemoryStream(RenderTextPage(lines.Skip(offset).Take(linesPerPage)));
+            using var image = XImage.FromStream(buffer);
             using var graphics = XGraphics.FromPdfPage(page);
-            var formatter = new XTextFormatter(graphics);
-            var content = string.Join(Environment.NewLine, lines.Skip(offset).Take(linesPerPage));
-            formatter.DrawString(content, font, XBrushes.Black,
-                new XRect(margin, margin, page.Width.Point - margin * 2, page.Height.Point - margin * 2));
+            graphics.DrawImage(image, 0, 0, page.Width.Point, page.Height.Point);
             progress?.Report(new JobProgress(Math.Min(95, (offset + linesPerPage) * 95d / Math.Max(1, lines.Count)), "正在排版文本"));
         }
+    }
+
+    private static byte[] RenderTextPage(IEnumerable<string> lines)
+    {
+        const double dpi = 144;
+        const int width = 1190;
+        const int height = 1684;
+        const double margin = 113.4;
+        const double fontSize = 21;
+        const double lineHeight = 28;
+        var visual = new DrawingVisual();
+        using (var drawing = visual.RenderOpen())
+        {
+            drawing.DrawRectangle(Brushes.White, null, new Rect(0, 0, width, height));
+            var y = margin;
+            foreach (var line in lines)
+            {
+                var formatted = new FormattedText(
+                    line,
+                    CultureInfo.CurrentUICulture,
+                    FlowDirection.LeftToRight,
+                    new Typeface(new FontFamily("Microsoft YaHei UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
+                    fontSize,
+                    Brushes.Black,
+                    1);
+                drawing.DrawText(formatted, new Point(margin, y));
+                y += lineHeight;
+            }
+        }
+
+        var bitmap = new RenderTargetBitmap(width, height, dpi, dpi, PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using var buffer = new MemoryStream();
+        encoder.Save(buffer);
+        return buffer.ToArray();
     }
 
     private static IEnumerable<string> WrapText(string text, int width)
