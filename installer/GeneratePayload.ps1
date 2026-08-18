@@ -30,7 +30,7 @@ function Escape-Xml([string]$value) {
 
 $files = Get-ChildItem -LiteralPath $publishRoot -File -Recurse | Sort-Object FullName
 if ($files.Count -eq 0) { throw "Publish directory is empty: $publishRoot" }
-if (-not ($files.Name -contains 'DocConvert.exe')) { throw 'DocConvert.exe is missing from the publish directory.' }
+if (-not ($files.Name -contains 'PDFConverter.exe')) { throw 'PDFConverter.exe is missing from the publish directory.' }
 
 $relativeDirectories = $files | ForEach-Object {
     $relative = [System.IO.Path]::GetRelativePath($publishRoot, $_.DirectoryName)

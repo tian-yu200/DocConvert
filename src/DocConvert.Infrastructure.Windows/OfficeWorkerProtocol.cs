@@ -70,7 +70,7 @@ public static class OfficeWorkerClient
     {
         var pipeName = "DocConvert-" + Guid.NewGuid().ToString("N");
         await using var pipe = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-        var executable = Environment.ProcessPath ?? throw new InvalidOperationException("无法定位 DocConvert.exe。");
+        var executable = Environment.ProcessPath ?? throw new InvalidOperationException("无法定位 PDFConverter.exe。");
         var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(executable, $"--office-worker {pipeName}")
         {
             UseShellExecute = false,

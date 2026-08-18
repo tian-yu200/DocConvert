@@ -11,7 +11,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyName>DocConvert</AssemblyName>
+    <AssemblyName>PDFConverter</AssemblyName>
     <RootNamespace>DocConvert.App</RootNamespace>
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationManifest>app.manifest</ApplicationManifest>

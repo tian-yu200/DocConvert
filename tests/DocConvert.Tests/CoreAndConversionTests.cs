@@ -204,6 +204,58 @@ public sealed class CoreAndConversionTests : IDisposable
     }
 
     [Fact]
+    public async Task ImageWatermarkRemoval_PreservesTextUnderCentralWatermark()
+    {
+        var input = Path.Combine(_root, "central-watermark.png");
+        var output = Path.Combine(_root, "central-watermark-cleaned.png");
+        using var clean = new Mat(220, 420, MatType.CV_8UC3, Scalar.White);
+        Cv2.PutText(clean, "IMPORTANT TEXT", new Point(28, 132), HersheyFonts.HersheySimplex,
+            1.15, new Scalar(18, 18, 18), 3, LineTypes.AntiAlias);
+        using var watermarked = clean.Clone();
+        using (var overlay = clean.Clone())
+        {
+            Cv2.PutText(overlay, "DRAFT", new Point(92, 150), HersheyFonts.HersheyDuplex,
+                2.15, new Scalar(35, 35, 230), 9, LineTypes.AntiAlias);
+            Cv2.AddWeighted(overlay, 0.34, watermarked, 0.66, 0, watermarked);
+        }
+        Cv2.ImWrite(input, watermarked);
+
+        var request = Request(input, output) with
+        {
+            Kind = JobKind.RemoveWatermark,
+            Watermark = new WatermarkOptions { Regions = [new WatermarkRegion(0, 0.17, 0.25, 0.72, 0.55)] }
+        };
+        var result = await new ImageWatermarkRemovalEngine().ExecuteAsync(request, null, CancellationToken.None);
+        Assert.True(result.Success, result.Error);
+
+        using var after = Cv2.ImRead(output, ImreadModes.Color);
+        var watermarkPixels = new List<(int Y, int X)>();
+        var coveredTextPixels = new List<(int Y, int X)>();
+        for (var y = 55; y < 176; y++)
+        for (var x = 71; x < 374; x++)
+        {
+            var expected = clean.At<Vec3b>(y, x);
+            var before = watermarked.At<Vec3b>(y, x);
+            if (MaxChannelDifference(expected, before) < 18) continue;
+            if (Luminance(expected) > 245) watermarkPixels.Add((y, x));
+            if (Luminance(expected) < 90) coveredTextPixels.Add((y, x));
+        }
+
+        Assert.NotEmpty(watermarkPixels);
+        Assert.NotEmpty(coveredTextPixels);
+        var watermarkErrorBefore = watermarkPixels.Average(point =>
+            (double)MaxChannelDifference(clean.At<Vec3b>(point.Y, point.X), watermarked.At<Vec3b>(point.Y, point.X)));
+        var watermarkErrorAfter = watermarkPixels.Average(point =>
+            (double)MaxChannelDifference(clean.At<Vec3b>(point.Y, point.X), after.At<Vec3b>(point.Y, point.X)));
+        Assert.True(watermarkErrorAfter < watermarkErrorBefore * 0.55,
+            $"Expected watermark to fade without masking the full rectangle: before={watermarkErrorBefore:F1}, after={watermarkErrorAfter:F1}.");
+
+        var retainedDarkText = coveredTextPixels.Count(point => Luminance(after.At<Vec3b>(point.Y, point.X)) < 120);
+        Assert.True(retainedDarkText >= coveredTextPixels.Count * 0.9,
+            $"Expected covered text strokes to stay sharp: retained={retainedDarkText}/{coveredTextPixels.Count}.");
+    }
+
+    [Fact]
     public void Safety_RejectsReadOnlyAndSignedPdfMarkers()
     {
         var readOnly = Path.Combine(_root, "readonly.txt");
@@ -234,6 +286,13 @@ public sealed class CoreAndConversionTests : IDisposable
         OutputPath = output,
         TargetExtension = Path.GetExtension(output)
     };
+
+    private static int MaxChannelDifference(Vec3b left, Vec3b right) =>
+        Math.Max(Math.Abs(left.Item0 - right.Item0),
+            Math.Max(Math.Abs(left.Item1 - right.Item1), Math.Abs(left.Item2 - right.Item2)));
+
+    private static double Luminance(Vec3b pixel) =>
+        pixel.Item0 * 0.114 + pixel.Item1 * 0.587 + pixel.Item2 * 0.299;
 
     public void Dispose()
     {

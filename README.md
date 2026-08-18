@@ -1,18 +1,18 @@
-# 文档转换器 DocConvert
+# PDF转换器
 
-面向 Windows 10/11 x64 的离线文档转换与去水印桌面工具，采用 .NET 8、WPF 和 MVVM 构建，使用 MIT 许可证。
+专为 Windows 10/11 x64 打造的专业 PDF 转换、OCR 与授权文档去水印工具。完全离线运行，采用 .NET 8、WPF 和 MVVM 构建，使用 MIT 许可证。
 
 应用不会上传文档，不覆盖原文件。转换结果使用唯一文件名；去水印结果默认增加 `_无水印` 后缀。
 
-## 下载 Windows 版
+## 立即下载 PDF转换器
 
-**[下载安装版（MSI）](https://github.com/tian-yu200/DocConvert/releases/latest/download/DocConvert.Installer.msi)**
+**[下载安装版（MSI，推荐）](https://github.com/tian-yu200/PDF-Converter/releases/latest/download/PDFConverter.Installer.msi)**
 
-**[下载免安装版（ZIP）](https://github.com/tian-yu200/DocConvert/releases/latest/download/DocConvert-win-x64.zip)**
+**[下载免安装版（ZIP）](https://github.com/tian-yu200/PDF-Converter/releases/latest/download/PDFConverter-win-x64.zip)**
 
-安装版双击 MSI 即可安装。免安装版解压 ZIP 后运行 `DocConvert.exe`。由于安装包暂未购买代码签名证书，Windows 首次运行时可能显示 SmartScreen 提示。
+安装版双击 MSI 即可安装。免安装版解压 ZIP 后运行 `PDFConverter.exe`。由于安装包暂未购买代码签名证书，Windows 首次运行时可能显示 SmartScreen 提示。
 
-[查看全部版本与校验文件](https://github.com/tian-yu200/DocConvert/releases)
+[查看全部版本与校验文件](https://github.com/tian-yu200/PDF-Converter/releases)
 
 ## 功能
 

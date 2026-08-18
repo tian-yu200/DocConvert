@@ -1,6 +1,7 @@
 <Project Sdk="WixToolset.Sdk/5.0.2">
   <PropertyGroup>
     <OutputType>Package</OutputType>
+    <OutputName>PDFConverter.Installer</OutputName>
     <Platform>x64</Platform>
     <Cultures>zh-CN</Cultures>
     <SuppressIces>ICE91</SuppressIces>

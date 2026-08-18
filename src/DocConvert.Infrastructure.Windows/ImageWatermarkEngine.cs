@@ -92,22 +92,18 @@ public sealed class ImageWatermarkRemovalEngine : IWatermarkRemovalEngine
     internal static void ProcessFrame(string inputPath, string outputPath, IEnumerable<WatermarkRegion> regions, CancellationToken token)
     {
         using var image = OpenCvImageFile.Read(inputPath, ImreadModes.Unchanged);
-        using var mask = new Mat(image.Rows, image.Cols, MatType.CV_8UC1, Scalar.Black);
-        foreach (var region in regions)
-        {
-            token.ThrowIfCancellationRequested();
-            var rect = ToPixelRect(region, image.Width, image.Height);
-            Cv2.Rectangle(mask, rect, Scalar.White, -1, LineTypes.Link8);
-        }
-        if (Cv2.CountNonZero(mask) == 0)
-            throw new InvalidOperationException("水印选区没有覆盖有效像素。");
-        using var expanded = new Mat();
-        using var kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new Size(5, 5));
-        Cv2.Dilate(mask, expanded, kernel);
-        using var bgr = image.Channels() == 4 ? new Mat() : image.Clone();
+        using var bgr = new Mat();
         if (image.Channels() == 4) Cv2.CvtColor(image, bgr, ColorConversionCodes.BGRA2BGR);
+        else if (image.Channels() == 1) Cv2.CvtColor(image, bgr, ColorConversionCodes.GRAY2BGR);
+        else image.CopyTo(bgr);
+        using var prepared = bgr.Clone();
+        using var mask = BuildSelectiveMask(bgr, prepared, regions, token, out var repairedDirectly);
+        var maskedPixels = Cv2.CountNonZero(mask);
+        if (maskedPixels == 0 && !repairedDirectly)
+            throw new InvalidOperationException("选区内没有识别到可安全去除的浅色或半透明水印像素。深色不透明水印覆盖正文时无法无损恢复，请缩小选区后重试。");
         using var cleaned = new Mat();
-        Cv2.Inpaint(bgr, expanded, cleaned, 4, InpaintTypes.Telea);
+        if (maskedPixels > 0) Cv2.Inpaint(prepared, mask, cleaned, 3, InpaintTypes.Telea);
+        else prepared.CopyTo(cleaned);
         if (image.Channels() == 4)
         {
             using var alpha = new Mat();
@@ -117,11 +113,141 @@ public sealed class ImageWatermarkRemovalEngine : IWatermarkRemovalEngine
             Cv2.InsertChannel(alpha, restored, 3);
             OpenCvImageFile.Write(outputPath, restored);
         }
+        else if (image.Channels() == 1)
+        {
+            using var grayscale = new Mat();
+            Cv2.CvtColor(cleaned, grayscale, ColorConversionCodes.BGR2GRAY);
+            OpenCvImageFile.Write(outputPath, grayscale);
+        }
         else
         {
             OpenCvImageFile.Write(outputPath, cleaned);
         }
     }
+
+    private static Mat BuildSelectiveMask(Mat bgr, Mat prepared, IEnumerable<WatermarkRegion> regions,
+        CancellationToken token, out bool repairedDirectly)
+    {
+        repairedDirectly = false;
+        var mask = new Mat(bgr.Rows, bgr.Cols, MatType.CV_8UC1, Scalar.Black);
+        foreach (var region in regions)
+        {
+            token.ThrowIfCancellationRequested();
+            var rect = ToPixelRect(region, bgr.Width, bgr.Height);
+            repairedDirectly |= AddRegionToMask(bgr, prepared, mask, rect);
+        }
+
+        return mask;
+    }
+
+    private static bool AddRegionToMask(Mat bgr, Mat prepared, Mat destination, Rect rect)
+    {
+        var background = EstimateBackground(bgr, rect, out var backgroundCoverage);
+        var backgroundLuminance = Luminance(background.Item0, background.Item1, background.Item2);
+        var inkThreshold = Math.Clamp(backgroundLuminance * 0.42, 45, 110);
+        using var candidates = new Mat(rect.Height, rect.Width, MatType.CV_8UC1, Scalar.Black);
+        using var protectedInk = new Mat(rect.Height, rect.Width, MatType.CV_8UC1, Scalar.Black);
+
+        for (var y = 0; y < rect.Height; y++)
+        {
+            for (var x = 0; x < rect.Width; x++)
+            {
+                var pixel = bgr.At<Vec3b>(rect.Y + y, rect.X + x);
+                var luminance = Luminance(pixel.Item0, pixel.Item1, pixel.Item2);
+                var distance = Math.Max(Math.Abs(pixel.Item0 - background.Item0),
+                    Math.Max(Math.Abs(pixel.Item1 - background.Item1), Math.Abs(pixel.Item2 - background.Item2)));
+                if (distance < 8) continue;
+
+                if (luminance <= inkThreshold)
+                    protectedInk.Set(y, x, byte.MaxValue);
+                else
+                    candidates.Set(y, x, byte.MaxValue);
+            }
+        }
+
+        using var candidateKernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new Size(3, 3));
+        using var expandedCandidates = new Mat();
+        Cv2.Dilate(candidates, expandedCandidates, candidateKernel);
+
+        // Keep a one-pixel buffer around strong document ink so inpainting cannot soften its edges.
+        using var inkKernel = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(3, 3));
+        using var expandedInk = new Mat();
+        Cv2.Dilate(protectedInk, expandedInk, inkKernel);
+        Cv2.BitwiseNot(expandedInk, expandedInk);
+        Cv2.BitwiseAnd(expandedCandidates, expandedInk, expandedCandidates);
+        if (Cv2.CountNonZero(expandedCandidates) == 0) return false;
+
+        if (backgroundCoverage >= 0.6)
+        {
+            using var preparedRegion = new Mat(prepared, rect);
+            preparedRegion.SetTo(new Scalar(background.Item0, background.Item1, background.Item2), expandedCandidates);
+            return true;
+        }
+
+        using var destinationRegion = new Mat(destination, rect);
+        Cv2.BitwiseOr(destinationRegion, expandedCandidates, destinationRegion);
+        return false;
+    }
+
+    private static Vec3d EstimateBackground(Mat bgr, Rect rect, out double coverage)
+    {
+        var margin = Math.Clamp(Math.Min(rect.Width, rect.Height) / 4, 4, 32);
+        var outerLeft = Math.Max(0, rect.Left - margin);
+        var outerTop = Math.Max(0, rect.Top - margin);
+        var outerRight = Math.Min(bgr.Width, rect.Right + margin);
+        var outerBottom = Math.Min(bgr.Height, rect.Bottom + margin);
+        var area = Math.Max(1, (outerRight - outerLeft) * (outerBottom - outerTop));
+        var step = Math.Max(1, (int)Math.Sqrt(area / 20000d));
+        var blue = new List<byte>();
+        var green = new List<byte>();
+        var red = new List<byte>();
+        var samples = new List<Vec3b>();
+
+        for (var y = outerTop; y < outerBottom; y += step)
+        {
+            for (var x = outerLeft; x < outerRight; x += step)
+            {
+                if (x >= rect.Left && x < rect.Right && y >= rect.Top && y < rect.Bottom) continue;
+                var pixel = bgr.At<Vec3b>(y, x);
+                samples.Add(pixel);
+                blue.Add(pixel.Item0);
+                green.Add(pixel.Item1);
+                red.Add(pixel.Item2);
+            }
+        }
+
+        if (blue.Count < 32)
+        {
+            for (var y = rect.Top; y < rect.Bottom; y += step)
+            for (var x = rect.Left; x < rect.Right; x += step)
+            {
+                var pixel = bgr.At<Vec3b>(y, x);
+                samples.Add(pixel);
+                blue.Add(pixel.Item0);
+                green.Add(pixel.Item1);
+                red.Add(pixel.Item2);
+            }
+        }
+
+        blue.Sort();
+        green.Sort();
+        red.Sort();
+        var index = Math.Clamp((int)Math.Round((blue.Count - 1) * 0.7), 0, blue.Count - 1);
+        var background = new Vec3d(blue[index], green[index], red[index]);
+        var matching = 0;
+        foreach (var sample in samples)
+        {
+            if (Math.Abs(sample.Item0 - background.Item0) <= 18
+                && Math.Abs(sample.Item1 - background.Item1) <= 18
+                && Math.Abs(sample.Item2 - background.Item2) <= 18)
+                matching++;
+        }
+        coverage = matching / (double)blue.Count;
+        return background;
+    }
+
+    private static double Luminance(double blue, double green, double red) =>
+        blue * 0.114 + green * 0.587 + red * 0.299;
 
     internal static Rect ToPixelRect(WatermarkRegion region, int width, int height)
     {

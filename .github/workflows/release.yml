@@ -67,15 +67,15 @@ jobs:
         shell: pwsh
         run: |
           $required = @(
-            'artifacts/publish/win-x64/DocConvert.exe',
+            'artifacts/publish/win-x64/PDFConverter.exe',
             'artifacts/publish/win-x64/tessdata/eng.traineddata',
             'artifacts/publish/win-x64/tessdata/chi_sim.traineddata'
           )
           foreach ($file in $required) {
             if (-not (Test-Path $file)) { throw "Missing publish payload: $file" }
           }
-          $version = (Get-Item 'artifacts/publish/win-x64/DocConvert.exe').VersionInfo.ProductVersion
-          if (-not $version.StartsWith('0.2.0')) { throw "Unexpected product version: $version" }
+          $version = (Get-Item 'artifacts/publish/win-x64/PDFConverter.exe').VersionInfo.ProductVersion
+          if (-not $version.StartsWith('0.3.0')) { throw "Unexpected product version: $version" }
           if (-not (Get-ChildItem artifacts/publish/win-x64 -Recurse -Filter 'OpenCvSharpExtern.dll')) { throw 'OpenCV native runtime missing.' }
           if (-not (Get-ChildItem artifacts/publish/win-x64 -Recurse -Filter 'pdfium.dll')) { throw 'PDFium native runtime missing.' }
           if (-not (Get-ChildItem artifacts/publish/win-x64 -Recurse -Filter 'leptonica-*.dll')) { throw 'Tesseract/Leptonica native runtime missing.' }
@@ -94,9 +94,9 @@ jobs:
       - name: Package ZIP and checksums
         shell: pwsh
         run: |
-          Compress-Archive -Path artifacts/publish/win-x64/* -DestinationPath artifacts/DocConvert-win-x64.zip -Force
+          Compress-Archive -Path artifacts/publish/win-x64/* -DestinationPath artifacts/PDFConverter-win-x64.zip -Force
           $releaseFiles = @(
-            'artifacts/DocConvert-win-x64.zip'
+            'artifacts/PDFConverter-win-x64.zip'
           ) + (Get-ChildItem artifacts/installer -Filter '*.msi' | Select-Object -ExpandProperty FullName)
           $lines = foreach ($file in $releaseFiles) {
             $hash = Get-FileHash $file -Algorithm SHA256
@@ -106,10 +106,10 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: DocConvert-win-x64
+          name: PDFConverter-win-x64
           path: |
             artifacts/installer/*.msi
-            artifacts/DocConvert-win-x64.zip
+            artifacts/PDFConverter-win-x64.zip
             artifacts/SHA256SUMS.txt
             **/TestResults/*.trx
 
@@ -119,5 +119,5 @@ jobs:
         with:
           files: |
             artifacts/installer/*.msi
-            artifacts/DocConvert-win-x64.zip
+            artifacts/PDFConverter-win-x64.zip
             artifacts/SHA256SUMS.txt

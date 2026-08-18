@@ -33,7 +33,7 @@ public sealed class PdfCreationEngine : IConversionEngine
         var temporary = workspace.PathFor("output.pdf");
         using var document = new PdfDocument();
         document.Info.Title = Path.GetFileNameWithoutExtension(request.InputPath);
-        document.Info.Creator = "DocConvert";
+        document.Info.Creator = "PDF转换器";
 
         if (SupportedFiles.IsImage(request.InputPath))
             AddImage(document, request.InputPath, progress, cancellationToken);

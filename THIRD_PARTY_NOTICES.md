@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-DocConvert is licensed under the MIT License. The following pinned components are used by or shipped with version 0.1.0.
+PDF转换器 is licensed under the MIT License. The following pinned components are used by or shipped with version 0.3.0.
 
 | Component | Version | Purpose | License | Source |
 |---|---:|---|---|---|
@@ -27,4 +27,4 @@ The installer and release ZIP contain the applicable license files and notices s
 - FileConverter: https://github.com/Tichau/FileConverter, GPL-3.0. Referenced only for high-level Windows conversion task and engine-adapter design. No source code was copied, linked, or redistributed.
 - Stirling-PDF: https://github.com/Stirling-Tools/Stirling-PDF. Referenced only for high-level feature grouping, batch workflow and error-feedback ideas. No source code was copied, linked, or redistributed. Review the current upstream license before reusing any code.
 
-DocConvert intentionally does not include PyMuPDF, iText, Ghostscript, or other AGPL/commercial dual-license conversion engines.
+PDF转换器 intentionally does not include PyMuPDF, iText, Ghostscript, or other AGPL/commercial dual-license conversion engines.
