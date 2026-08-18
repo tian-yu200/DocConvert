@@ -17,8 +17,7 @@ public sealed class ImageWatermarkDetectionEngine : IWatermarkDetectionEngine
     public Task<IReadOnlyList<WatermarkCandidate>> DetectAsync(string inputPath, IProgress<JobProgress>? progress, CancellationToken cancellationToken) =>
         Task.Run<IReadOnlyList<WatermarkCandidate>>(() =>
         {
-            using var image = Cv2.ImRead(inputPath, ImreadModes.Color);
-            if (image.Empty()) return [];
+            using var image = OpenCvImageFile.Read(inputPath, ImreadModes.Color);
             using var gray = new Mat();
             using var edges = new Mat();
             Cv2.CvtColor(image, gray, ColorConversionCodes.BGR2GRAY);
@@ -92,8 +91,7 @@ public sealed class ImageWatermarkRemovalEngine : IWatermarkRemovalEngine
 
     internal static void ProcessFrame(string inputPath, string outputPath, IEnumerable<WatermarkRegion> regions, CancellationToken token)
     {
-        using var image = Cv2.ImRead(inputPath, ImreadModes.Unchanged);
-        if (image.Empty()) throw new InvalidOperationException("无法读取图像。");
+        using var image = OpenCvImageFile.Read(inputPath, ImreadModes.Unchanged);
         using var mask = new Mat(image.Rows, image.Cols, MatType.CV_8UC1, Scalar.Black);
         foreach (var region in regions)
         {
@@ -117,11 +115,11 @@ public sealed class ImageWatermarkRemovalEngine : IWatermarkRemovalEngine
             using var restored = new Mat();
             Cv2.CvtColor(cleaned, restored, ColorConversionCodes.BGR2BGRA);
             Cv2.InsertChannel(alpha, restored, 3);
-            if (!Cv2.ImWrite(outputPath, restored)) throw new IOException("无法写入处理后的图像。");
+            OpenCvImageFile.Write(outputPath, restored);
         }
-        else if (!Cv2.ImWrite(outputPath, cleaned))
+        else
         {
-            throw new IOException("无法写入处理后的图像。");
+            OpenCvImageFile.Write(outputPath, cleaned);
         }
     }
 

@@ -175,13 +175,16 @@ public sealed class CoreAndConversionTests : IDisposable
     [Fact]
     public async Task ImageWatermarkRemoval_ChangesOnlyNearMask()
     {
-        var input = Path.Combine(_root, "watermarked.png");
-        var output = Path.Combine(_root, "watermarked_无水印.png");
+        var unicodeRoot = Path.Combine(_root, "中文目录");
+        Directory.CreateDirectory(unicodeRoot);
+        var input = Path.Combine(unicodeRoot, "带水印.png");
+        var output = Path.Combine(unicodeRoot, "带水印_无水印.png");
         using (var image = new Mat(200, 300, MatType.CV_8UC3, new Scalar(255, 255, 255)))
         {
             Cv2.Rectangle(image, new Rect(20, 20, 40, 40), new Scalar(30, 120, 220), -1);
             Cv2.Rectangle(image, new Rect(100, 85, 130, 35), new Scalar(120, 120, 120), -1);
-            Cv2.ImWrite(input, image);
+            Assert.True(Cv2.ImEncode(".png", image, out var encoded));
+            File.WriteAllBytes(input, encoded);
         }
 
         var request = Request(input, output) with
@@ -191,8 +194,8 @@ public sealed class CoreAndConversionTests : IDisposable
         };
         var result = await new ImageWatermarkRemovalEngine().ExecuteAsync(request, null, CancellationToken.None);
         Assert.True(result.Success, result.Error);
-        using var before = Cv2.ImRead(input);
-        using var after = Cv2.ImRead(output);
+        using var before = Cv2.ImDecode(File.ReadAllBytes(input), ImreadModes.Unchanged);
+        using var after = Cv2.ImDecode(File.ReadAllBytes(output), ImreadModes.Unchanged);
         Assert.Equal(before.At<Vec3b>(30, 30), after.At<Vec3b>(30, 30));
         using var difference = new Mat();
         Cv2.Absdiff(before, after, difference);
