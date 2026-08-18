@@ -68,11 +68,13 @@ public sealed class CoreAndConversionTests : IDisposable
         Assert.Equal(1, document.PageCount);
     }
 
-    [Fact]
-    public async Task ImageToPdf_CreatesOnePage()
+    [Theory]
+    [InlineData(".png")]
+    [InlineData(".jpg")]
+    public async Task ImageToPdf_CreatesOnePage(string extension)
     {
-        var input = Path.Combine(_root, "image.png");
-        var output = Path.Combine(_root, "image.pdf");
+        var input = Path.Combine(_root, "image" + extension);
+        var output = Path.Combine(_root, $"image-{extension.TrimStart('.')}.pdf");
         using (var image = new Mat(120, 180, MatType.CV_8UC3, new Scalar(245, 245, 245)))
         {
             Cv2.PutText(image, "TEST", new Point(35, 70), HersheyFonts.HersheySimplex, 1.4, new Scalar(20, 20, 20), 2);
@@ -82,6 +84,61 @@ public sealed class CoreAndConversionTests : IDisposable
         Assert.True(result.Success, result.Error);
         using var document = PdfSharp.Pdf.IO.PdfReader.Open(output, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
         Assert.Single(document.Pages);
+    }
+
+    [Fact]
+    public async Task PdfToPng_CreatesOneImagePerPageAtRequestedDpi()
+    {
+        var input = Path.Combine(_root, "two-pages.pdf");
+        var output = Path.Combine(_root, "two-pages.png");
+        using (var pdf = new PdfDocument())
+        {
+            for (var index = 0; index < 2; index++)
+            {
+                var page = pdf.AddPage();
+                page.Width = XUnit.FromPoint(72);
+                page.Height = XUnit.FromPoint(144);
+                using var graphics = XGraphics.FromPdfPage(page);
+                graphics.DrawString($"Page {index + 1}", new XFont("Arial", 12), XBrushes.Black, new XPoint(8, 30));
+            }
+            pdf.Save(input);
+        }
+
+        var request = Request(input, output) with { Conversion = new ConversionOptions { RenderDpi = 150 } };
+        var result = await new PdfToImageEngine().ExecuteAsync(request, null, CancellationToken.None);
+
+        Assert.True(result.Success, result.Error);
+        Assert.Equal(output, result.OutputPath);
+        Assert.True(File.Exists(output));
+        Assert.True(File.Exists(Path.Combine(_root, "two-pages_002.png")));
+        using var image = Cv2.ImRead(output, ImreadModes.Unchanged);
+        Assert.InRange(image.Width, 149, 151);
+        Assert.InRange(image.Height, 299, 301);
+    }
+
+    [Fact]
+    public async Task PdfToJpg_AvoidsCollisionsAcrossTheWholePageSet()
+    {
+        var input = Path.Combine(_root, "collision.pdf");
+        var output = Path.Combine(_root, "collision.jpg");
+        var existingSecondPage = Path.Combine(_root, "collision_002.jpg");
+        using (var pdf = new PdfDocument())
+        {
+            pdf.AddPage();
+            pdf.AddPage();
+            pdf.Save(input);
+        }
+        await File.WriteAllTextAsync(existingSecondPage, "keep");
+
+        var result = await new PdfToImageEngine().ExecuteAsync(Request(input, output), null, CancellationToken.None);
+
+        Assert.True(result.Success, result.Error);
+        Assert.EndsWith("collision (1).jpg", result.OutputPath);
+        Assert.True(File.Exists(result.OutputPath));
+        Assert.True(File.Exists(Path.Combine(_root, "collision (1)_002.jpg")));
+        Assert.Equal("keep", await File.ReadAllTextAsync(existingSecondPage));
+        using var image = Cv2.ImRead(result.OutputPath, ImreadModes.Color);
+        Assert.False(image.Empty());
     }
 
     [Fact]

@@ -1,32 +1,112 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Color x:Key="WindowColor">#F7F8FA</Color>
-    <Color x:Key="PanelColor">#FFFFFF</Color>
-    <Color x:Key="PrimaryColor">#D86A52</Color>
-    <Color x:Key="PrimaryHoverColor">#C65D47</Color>
-    <Color x:Key="PrimaryPressedColor">#AF4F3C</Color>
-    <Color x:Key="SecondaryColor">#3F7C78</Color>
-    <Color x:Key="SecondarySoftColor">#EAF3F2</Color>
-    <Color x:Key="TextColor">#263445</Color>
-    <Color x:Key="MutedColor">#6E7B89</Color>
-    <Color x:Key="BorderColor">#DDE2E8</Color>
-    <Color x:Key="SurfaceHoverColor">#F3F5F7</Color>
-    <Color x:Key="DisabledColor">#E8EBEF</Color>
-    <Color x:Key="PreviewColor">#ECEFF2</Color>
-    <Color x:Key="WarningColor">#A34E35</Color>
 
+    <!-- ========== 品牌主色（活力橙） ========== -->
+    <Color x:Key="PrimaryColor">#F25B3D</Color>
+    <Color x:Key="PrimaryHoverColor">#E84B2C</Color>
+    <Color x:Key="PrimaryPressedColor">#D93D20</Color>
+    <Color x:Key="PrimaryLightColor">#FFF0EB</Color>
+    <Color x:Key="PrimaryGradientStart">#FF7A45</Color>
+    <Color x:Key="PrimaryGradientEnd">#F0442B</Color>
+
+    <!-- ========== 辅助色（清透青） ========== -->
+    <Color x:Key="SecondaryColor">#1598A3</Color>
+    <Color x:Key="SecondaryHoverColor">#0E848E</Color>
+    <Color x:Key="SecondaryPressedColor">#0A6E76</Color>
+    <Color x:Key="SecondaryLightColor">#E7F8F8</Color>
+
+    <!-- ========== 中性色 ========== -->
+    <Color x:Key="WindowColor">#F5F7FA</Color>
+    <Color x:Key="PanelColor">#FFFFFF</Color>
+    <Color x:Key="TextColor">#172033</Color>
+    <Color x:Key="MutedColor">#68758A</Color>
+    <Color x:Key="PlaceholderColor">#99A5B5</Color>
+    <Color x:Key="BorderColor">#DFE5EC</Color>
+    <Color x:Key="BorderStrongColor">#C9D3DF</Color>
+    <Color x:Key="SurfaceHoverColor">#F2F5F8</Color>
+    <Color x:Key="SurfacePressedColor">#E9EEF3</Color>
+    <Color x:Key="DisabledColor">#E9EDF2</Color>
+    <Color x:Key="DisabledTextColor">#9AA5B4</Color>
+    <Color x:Key="PreviewColor">#EDF1F5</Color>
+    <Color x:Key="HeaderGradientStart">#FFFFFF</Color>
+    <Color x:Key="HeaderGradientEnd">#FAFBFD</Color>
+
+    <!-- ========== 语义色 ========== -->
+    <Color x:Key="SuccessColor">#10B981</Color>
+    <Color x:Key="SuccessLightColor">#ECFDF5</Color>
+    <Color x:Key="WarningColor">#D97706</Color>
+    <Color x:Key="WarningLightColor">#FFFBEB</Color>
+    <Color x:Key="ErrorColor">#EF4444</Color>
+    <Color x:Key="ErrorLightColor">#FEF2F2</Color>
+    <Color x:Key="InfoColor">#3B82F6</Color>
+    <Color x:Key="InfoLightColor">#EFF6FF</Color>
+
+    <!-- ========== 阴影色 ========== -->
+    <Color x:Key="ShadowColor">#1E293B</Color>
+
+    <!-- ========== 纯色画刷 ========== -->
     <SolidColorBrush x:Key="WindowBrush" Color="{StaticResource WindowColor}" />
     <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}" />
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
     <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
     <SolidColorBrush x:Key="PrimaryPressedBrush" Color="{StaticResource PrimaryPressedColor}" />
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}" />
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}" />
-    <SolidColorBrush x:Key="SecondarySoftBrush" Color="{StaticResource SecondarySoftColor}" />
+    <SolidColorBrush x:Key="SecondaryHoverBrush" Color="{StaticResource SecondaryHoverColor}" />
+    <SolidColorBrush x:Key="SecondaryPressedBrush" Color="{StaticResource SecondaryPressedColor}" />
+    <SolidColorBrush x:Key="SecondaryLightBrush" Color="{StaticResource SecondaryLightColor}" />
     <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
     <SolidColorBrush x:Key="MutedBrush" Color="{StaticResource MutedColor}" />
+    <SolidColorBrush x:Key="PlaceholderBrush" Color="{StaticResource PlaceholderColor}" />
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrongColor}" />
     <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource SurfaceHoverColor}" />
+    <SolidColorBrush x:Key="SurfacePressedBrush" Color="{StaticResource SurfacePressedColor}" />
     <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}" />
+    <SolidColorBrush x:Key="DisabledTextBrush" Color="{StaticResource DisabledTextColor}" />
     <SolidColorBrush x:Key="PreviewBrush" Color="{StaticResource PreviewColor}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="WarningLightBrush" Color="{StaticResource WarningLightColor}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="SuccessLightBrush" Color="{StaticResource SuccessLightColor}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
+    <SolidColorBrush x:Key="ErrorLightBrush" Color="{StaticResource ErrorLightColor}" />
+    <SolidColorBrush x:Key="WarmWashBrush" Color="#FFF8F4" />
+    <SolidColorBrush x:Key="CoolWashBrush" Color="#F0FBFC" />
+    <SolidColorBrush x:Key="InkSoftBrush" Color="#334155" />
+
+    <!-- ========== 渐变画刷 ========== -->
+    <LinearGradientBrush x:Key="PrimaryGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource PrimaryGradientStart}" Offset="0" />
+        <GradientStop Color="{StaticResource PrimaryGradientEnd}" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="HeaderGradientBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="{StaticResource HeaderGradientStart}" Offset="0" />
+        <GradientStop Color="{StaticResource HeaderGradientEnd}" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="WorkspaceWashBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FFFFF8F5" Offset="0" />
+        <GradientStop Color="#FFFFFFFF" Offset="0.48" />
+        <GradientStop Color="#FFF1FBFC" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="FlowAccentBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FFFF764A" Offset="0" />
+        <GradientStop Color="#FFFFB45D" Offset="0.44" />
+        <GradientStop Color="#FF1CB3BE" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PrimaryHoverGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FF6C3B" Offset="0" />
+        <GradientStop Color="#E93E24" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- ========== 阴影效果 ========== -->
+    <DropShadowEffect x:Key="CardShadow" Color="{StaticResource ShadowColor}" Opacity="0.055" BlurRadius="18" ShadowDepth="2" Direction="270" />
+    <DropShadowEffect x:Key="CardShadowHover" Color="{StaticResource ShadowColor}" Opacity="0.10" BlurRadius="20" ShadowDepth="2" Direction="270" />
+    <DropShadowEffect x:Key="ButtonShadow" Color="{StaticResource PrimaryColor}" Opacity="0.22" BlurRadius="12" ShadowDepth="3" Direction="270" />
+    <DropShadowEffect x:Key="PopupShadow" Color="{StaticResource ShadowColor}" Opacity="0.12" BlurRadius="20" ShadowDepth="4" Direction="270" />
+
 </ResourceDictionary>

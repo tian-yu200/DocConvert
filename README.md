@@ -23,6 +23,7 @@
 | 扫描 PDF | 可搜索 PDF、DOCX | Tesseract `chi_sim+eng` |
 | DOCX/XLSX/PPTX | PDF | 隐藏的独立 Office STA Worker |
 | JPG/PNG/BMP/TIFF | PDF | PDFsharp |
+| PDF | JPG/PNG | 150/200/300 DPI 逐页渲染，多页自动编号 |
 | TXT | PDF | UTF-8、UTF-16、GB18030 检测，A4 自动换行分页 |
 
 去水印支持 PDF、DOCX、XLSX、PPTX、JPG、PNG、BMP、TIFF。自动检测只提供候选，必须由用户勾选原生对象或手动框选区域后才会处理。

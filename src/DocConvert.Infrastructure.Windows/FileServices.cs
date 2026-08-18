@@ -64,6 +64,47 @@ public sealed class JobWorkspace : IDisposable
         return finalPath;
     }
 
+    public IReadOnlyList<string> CommitBatch(IEnumerable<(string TemporaryPath, string FinalPath)> files)
+    {
+        var entries = files
+            .Select(entry => (TemporaryPath: Path.GetFullPath(entry.TemporaryPath), FinalPath: Path.GetFullPath(entry.FinalPath)))
+            .ToArray();
+        if (entries.Length == 0) throw new IOException("转换引擎没有生成输出文件。");
+        if (entries.Select(entry => entry.FinalPath).Distinct(StringComparer.OrdinalIgnoreCase).Count() != entries.Length)
+            throw new IOException("转换引擎生成了重复的输出路径。");
+
+        foreach (var entry in entries)
+        {
+            if (!File.Exists(entry.TemporaryPath) || new FileInfo(entry.TemporaryPath).Length == 0)
+                throw new IOException("转换引擎没有生成有效的临时输出文件。");
+            if (entry.TemporaryPath.Equals(entry.FinalPath, StringComparison.OrdinalIgnoreCase))
+                throw new IOException("输出路径不能与临时文件相同。");
+            if (File.Exists(entry.FinalPath))
+                throw new IOException("输出文件已存在。为保护现有文件，本次任务未覆盖它。");
+        }
+
+        var committed = new List<string>(entries.Length);
+        try
+        {
+            foreach (var entry in entries)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(entry.FinalPath)!);
+                File.Move(entry.TemporaryPath, entry.FinalPath, false);
+                committed.Add(entry.FinalPath);
+            }
+            return committed;
+        }
+        catch
+        {
+            foreach (var path in committed)
+            {
+                try { File.Delete(path); }
+                catch { }
+            }
+            throw;
+        }
+    }
+
     public void Dispose()
     {
         try { if (Directory.Exists(Root)) Directory.Delete(Root, true); }
