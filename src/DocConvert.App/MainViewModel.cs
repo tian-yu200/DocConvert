@@ -32,7 +32,7 @@ public sealed partial class MainViewModel : ObservableObject
         var pdfWatermark = new PdfWatermarkEngine();
         _runner = new DocumentJobRunner(new IDocumentEngine[]
         {
-            new OcrConversionEngine(), new PdfToPptxEngine(), new OfficeConversionEngine(), new PdfCreationEngine(),
+            new OcrConversionEngine(), new PdfToPptxEngine(), new PdfToImageEngine(), new OfficeConversionEngine(), new PdfCreationEngine(),
             openXml, pdfWatermark, new ImageWatermarkRemovalEngine()
         });
         _detectors = [openXml, pdfWatermark, new ImageWatermarkDetectionEngine()];
@@ -43,7 +43,7 @@ public sealed partial class MainViewModel : ObservableObject
     public ObservableCollection<WatermarkFileViewModel> WatermarkFiles { get; } = [];
     public ObservableCollection<WatermarkCandidateViewModel> Candidates { get; } = [];
     public ObservableCollection<WatermarkRegion> Regions { get; } = [];
-    public IReadOnlyList<string> TargetFormats { get; } = ["PDF", "DOCX", "PPTX"];
+    public IReadOnlyList<string> TargetFormats { get; } = ["PDF", "DOCX", "PPTX", "JPG", "PNG"];
     public IReadOnlyList<int> DpiOptions { get; } = [150, 200, 300];
     public IReadOnlyList<WatermarkScopeOption> WatermarkScopes { get; } =
     [
@@ -66,9 +66,13 @@ public sealed partial class MainViewModel : ObservableObject
 
     public bool IsPageRangeScope => SelectedWatermarkScope.Value == WatermarkScope.PageRange;
     public bool IsPptOutput => SelectedTargetFormat.Equals("PPTX", StringComparison.OrdinalIgnoreCase);
-    public bool IsOcrAvailable => !IsPptOutput;
+    public bool IsImageOutput => SelectedTargetFormat is "JPG" or "PNG";
+    public bool IsRenderDpiAvailable => IsPptOutput || IsImageOutput;
+    public bool IsOcrAvailable => SelectedTargetFormat is "PDF" or "DOCX";
     public string ConversionModeDescription => IsPptOutput
         ? "高清视觉模式 · 固定 16:9 · 页面完整居中，适合投影与讲解；页面内容不能逐元素编辑。"
+        : IsImageOutput
+            ? "PDF 将按所选清晰度逐页生成图片；多页文件会自动追加页码。"
         : EnableOcr
             ? "OCR 已启用，将识别扫描页中的简体中文和英文。"
             : "转换过程全程在本机完成，不会上传文件。";
@@ -84,8 +88,10 @@ public sealed partial class MainViewModel : ObservableObject
 
     partial void OnSelectedTargetFormatChanged(string value)
     {
-        if (IsPptOutput) EnableOcr = false;
+        if (!IsOcrAvailable) EnableOcr = false;
         OnPropertyChanged(nameof(IsPptOutput));
+        OnPropertyChanged(nameof(IsImageOutput));
+        OnPropertyChanged(nameof(IsRenderDpiAvailable));
         OnPropertyChanged(nameof(IsOcrAvailable));
         OnPropertyChanged(nameof(ConversionModeDescription));
     }
@@ -462,6 +468,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             (".pdf", ".docx") => true,
             (".pdf", ".pptx") => true,
+            (".pdf", ".jpg") or (".pdf", ".png") => true,
             (".pdf", ".pdf") => enableOcr,
             (".docx", ".pdf") or (".xlsx", ".pdf") or (".pptx", ".pdf") => true,
             (".jpg", ".pdf") or (".jpeg", ".pdf") or (".png", ".pdf") or (".bmp", ".pdf") or (".tif", ".pdf") or (".tiff", ".pdf") => true,

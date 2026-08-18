@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-PDF转换器 is licensed under the MIT License. The following pinned components are used by or shipped with version 0.3.0.
+PDF转换器 is licensed under the MIT License. The following pinned components are used by or shipped with version 0.4.0.
 
 | Component | Version | Purpose | License | Source |
 |---|---:|---|---|---|

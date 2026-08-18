@@ -6,6 +6,8 @@
         Icon="pack://application:,,,/Assets/DocConvert.ico">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <!-- 图标 Geometry -->
         <Geometry x:Key="AddIcon">M12,5 V19 M5,12 H19</Geometry>
         <Geometry x:Key="FolderIcon">M3,6 H9 L11,8 H21 V19 H3 Z</Geometry>
         <Geometry x:Key="PlayIcon">M8,5 L19,12 L8,19 Z</Geometry>
@@ -15,151 +17,468 @@
         <Geometry x:Key="TrashIcon">M6,7 H18 M9,7 V4 H15 V7 M8,10 V19 H16 V10</Geometry>
         <Geometry x:Key="SearchIcon">M11,4 A7,7 0 1 0 11,18 A7,7 0 1 0 11,4 M16,16 L21,21</Geometry>
         <Geometry x:Key="SparkIcon">M12,3 L13.7,8.3 L19,10 L13.7,11.7 L12,17 L10.3,11.7 L5,10 L10.3,8.3 Z</Geometry>
+        <Geometry x:Key="ShieldIcon">M12,2 L4,5 V11 C4,16 7.5,20 12,22 C16.5,20 20,16 20,11 V5 Z</Geometry>
+        <Geometry x:Key="FileIcon">M6,2 H15 L20,7 V20 C20,21.1 19.1,22 18,22 H6 C4.9,22 4,21.1 4,20 V4 C4,2.9 4.9,2 6,2 Z M14,2 V7 H19</Geometry>
+        <Geometry x:Key="DropIcon">M12,2 C8,8 5,11 5,15 A7,7 0 0 0 19,15 C19,11 16,8 12,2 Z</Geometry>
+        <Geometry x:Key="ArrowRightIcon">M5,12 H19 M14,7 L19,12 L14,17</Geometry>
+        <Geometry x:Key="LockIcon">M7,10 V7 A5,5 0 0 1 17,7 V10 M5,10 H19 V21 H5 Z</Geometry>
+        <Geometry x:Key="CheckIcon">M5,12 L10,17 L20,7</Geometry>
     </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="68" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="36" />
+            <RowDefinition Height="44" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
-            <Grid Margin="22,0">
+        <!-- ==================== 顶部标题栏 ==================== -->
+        <Border Grid.Row="0" Background="{StaticResource HeaderGradientBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+            <Grid Height="82" ClipToBounds="True">
+                <Canvas HorizontalAlignment="Right" Width="520" IsHitTestVisible="False" Opacity="0.42">
+                    <Path Data="M30,64 C130,18 210,92 330,37 C395,8 458,11 520,0" Stroke="#42F25B3D" StrokeThickness="2" />
+                    <Path Data="M76,80 C177,35 240,91 348,51 C415,26 463,27 520,18" Stroke="#451598A3" StrokeThickness="2" />
+                    <Ellipse Canvas.Left="327" Canvas.Top="34" Width="7" Height="7" Fill="{StaticResource PrimaryBrush}" />
+                    <Ellipse Canvas.Left="444" Canvas.Top="24" Width="6" Height="6" Fill="{StaticResource SecondaryBrush}" />
+                </Canvas>
+                <Grid Margin="26,0">
                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="PDF转换器" FontSize="21" FontWeight="SemiBold" />
-                    <TextBlock Text="专业 PDF 转换、OCR 与授权文档去水印" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" />
-                </StackPanel>
-                <Border Grid.Column="1" VerticalAlignment="Center" Background="{StaticResource SecondarySoftBrush}" CornerRadius="6" Padding="10,6">
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse Width="7" Height="7" Fill="{StaticResource SecondaryBrush}" VerticalAlignment="Center" Margin="0,0,7,0" />
-                        <TextBlock Text="本地处理" Foreground="{StaticResource SecondaryBrush}" FontWeight="SemiBold" />
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="46" Height="46" CornerRadius="8" Background="{StaticResource PrimaryGradientBrush}"
+                            Effect="{StaticResource ButtonShadow}" VerticalAlignment="Center">
+                        <Path Data="{StaticResource FileIcon}" Stroke="White" StrokeThickness="1.6"
+                              Width="25" Height="25" Stretch="Uniform"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" />
+                    </Border>
+                    <StackPanel Margin="13,0,0,0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="PDF转换器" FontSize="21" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                            <Border Background="{StaticResource PrimaryLightBrush}" CornerRadius="4" Padding="6,2" Margin="10,1,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="DOC CONVERT" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="文档转换、OCR 识别与授权文档去水印" FontSize="12"
+                                   Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" />
                     </StackPanel>
-                </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="{StaticResource CoolWashBrush}" CornerRadius="7" Padding="11,7"
+                            BorderBrush="#401598A3" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource LockIcon}" Stroke="{StaticResource SecondaryBrush}" StrokeThickness="1.7"
+                                  Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,7,0" />
+                            <TextBlock Text="文件仅在本机处理" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource SecondaryBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#BFFFFFFF" CornerRadius="5" Padding="8,5" Margin="10,0,0,0" VerticalAlignment="Center"
+                            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                        <TextBlock Text="v0.4.0" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                    </Border>
+                </StackPanel>
+                </Grid>
             </Grid>
         </Border>
 
-        <TabControl Grid.Row="1" Margin="18,8,18,12">
+        <!-- ==================== 主体内容 ==================== -->
+        <TabControl Grid.Row="1" Margin="22,14,22,10">
+            <!-- ========== 文件转换标签页 ========== -->
             <TabItem Header="文件转换">
-                <Grid Margin="0,10,0,0">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="300" />
+                    </Grid.ColumnDefinitions>
 
-                    <Border Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12">
+                    <!-- 左侧转换队列 -->
+                    <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" ClipToBounds="True" Effect="{StaticResource CardShadow}">
                         <Grid>
-                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" /><ColumnDefinition Width="12" /><ColumnDefinition Width="142" />
-                                    <ColumnDefinition Width="16" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="92" />
-                                    <ColumnDefinition Width="16" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Command="{Binding AddConversionFilesCommand}" Style="{StaticResource PrimaryButton}">
-                                    <StackPanel Orientation="Horizontal"><Path Data="{StaticResource AddIcon}" Stroke="White" StrokeThickness="2" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" /><TextBlock Text="添加文件" /></StackPanel>
-                                </Button>
-                                <ComboBox Grid.Column="2" ItemsSource="{Binding TargetFormats}" SelectedItem="{Binding SelectedTargetFormat}" />
-                                <TextBlock Grid.Column="4" Text="清晰度" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" Visibility="{Binding IsPptOutput, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <ComboBox Grid.Column="5" ItemsSource="{Binding DpiOptions}" SelectedItem="{Binding RenderDpi}" Visibility="{Binding IsPptOutput, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <CheckBox Grid.Column="7" Content="启用 OCR" IsChecked="{Binding EnableOcr}" IsEnabled="{Binding IsOcrAvailable}" VerticalAlignment="Center" />
-                                <Button Grid.Column="9" Command="{Binding ClearCompletedCommand}" ToolTip="清除已完成任务">
-                                    <StackPanel Orientation="Horizontal"><Path Data="{StaticResource BroomIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.6" Width="16" Height="16" Stretch="Uniform" Margin="0,0,7,0" /><TextBlock Text="清理已完成" /></StackPanel>
-                                </Button>
-                            </Grid>
-                            <Border Grid.Row="1" Background="#FAF5F2" CornerRadius="6" Padding="10,7" Margin="0,10,0,0">
-                                <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource SparkIcon}" Fill="{StaticResource PrimaryBrush}" Width="15" Height="15" Stretch="Uniform" Margin="0,1,8,0" />
-                                    <TextBlock Text="{Binding ConversionModeDescription}" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" />
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="68" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Background="#FCFFFFFF">
+                                <Grid Margin="18,0">
+                                    <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="转换队列" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                                        <TextBlock Text="拖入文件或点击添加，可一次处理多个任务" FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Command="{Binding ClearCompletedCommand}" ToolTip="清除已完成任务" Style="{StaticResource IconButton}" Margin="0,0,8,0">
+                                            <Path Data="{StaticResource BroomIcon}" Stroke="{StaticResource MutedBrush}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                                  Width="17" Height="17" Stretch="Uniform" />
+                                        </Button>
+                                        <Button Command="{Binding AddConversionFilesCommand}" Style="{StaticResource PrimaryButton}" MinWidth="112" Height="38">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Data="{StaticResource AddIcon}" Stroke="White" StrokeThickness="2.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                      Width="15" Height="15" Stretch="Uniform" Margin="0,0,7,0" />
+                                                <TextBlock Text="添加文件" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <DataGrid Grid.Row="1" ItemsSource="{Binding ConversionJobs}" AutoGenerateColumns="False" CanUserAddRows="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="文件名" Binding="{Binding FileName}" Width="2.2*" />
+                                    <DataGridTextColumn Header="类型" Binding="{Binding FileType}" Width="70" />
+                                    <DataGridTextColumn Header="状态" Binding="{Binding Message}" Width="1.5*" />
+                                    <DataGridTemplateColumn Header="进度" Width="130">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ProgressBar Value="{Binding Progress}" Height="7" Margin="8,0" Minimum="0" Maximum="100" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="操作" Width="88">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="打开" Height="30" Padding="12,0" FontSize="12"
+                                                        Command="{Binding DataContext.OpenOutputCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <Grid Grid.Row="1" Background="{StaticResource WorkspaceWashBrush}">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ConversionJobs.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                                <Canvas VerticalAlignment="Bottom" Height="120" IsHitTestVisible="False" Opacity="0.7">
+                                    <Path Data="M-30,95 C110,40 220,135 390,68 C520,17 630,83 780,34" Stroke="#28F25B3D" StrokeThickness="4" />
+                                    <Path Data="M-25,112 C125,62 248,147 410,84 C548,31 670,93 820,49" Stroke="#281598A3" StrokeThickness="4" />
+                                </Canvas>
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="470" Margin="0,4,0,0">
+                                    <Image Source="pack://application:,,,/Assets/conversion-empty.png" Width="238" Height="155"
+                                           Stretch="Uniform" IsHitTestVisible="False" />
+                                    <TextBlock Text="把文档拖到这里，开始转换" FontSize="21" FontWeight="Bold" HorizontalAlignment="Center"
+                                               Margin="0,7,0,0" Foreground="{StaticResource TextBrush}" IsHitTestVisible="False" />
+                                    <TextBlock Text="支持 PDF、Word、Excel、PPT、图片与 TXT" FontSize="12.5"
+                                               Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,7,0,0" IsHitTestVisible="False" />
+                                    <Button Command="{Binding AddConversionFilesCommand}" Style="{StaticResource PrimaryButton}"
+                                            Margin="0,18,0,0" HorizontalAlignment="Center" MinWidth="148" Height="42">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="{StaticResource AddIcon}" Stroke="White" StrokeThickness="2.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  Width="16" Height="16" Stretch="Uniform" Margin="0,0,7,0" />
+                                            <TextBlock Text="选择文档" FontSize="13.5" />
+                                        </StackPanel>
+                                    </Button>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0" IsHitTestVisible="False">
+                                        <TextBlock Text="批量转换" FontSize="11" Foreground="{StaticResource SecondaryBrush}" />
+                                        <TextBlock Text="  ·  " FontSize="11" Foreground="{StaticResource PlaceholderBrush}" />
+                                        <TextBlock Text="OCR 识别" FontSize="11" Foreground="{StaticResource SecondaryBrush}" />
+                                        <TextBlock Text="  ·  " FontSize="11" Foreground="{StaticResource PlaceholderBrush}" />
+                                        <TextBlock Text="本地处理" FontSize="11" Foreground="{StaticResource SecondaryBrush}" />
+                                    </StackPanel>
                                 </StackPanel>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <!-- 右侧转换设置 -->
+                    <Border Grid.Column="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" Effect="{StaticResource CardShadow}">
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ModernScrollViewer}">
+                                <StackPanel Margin="20,18,20,16">
+                                    <TextBlock Text="转换设置" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                                    <TextBlock Text="选择目标格式并设置输出方式" FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" />
+
+                                    <TextBlock Text="目标格式" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource InkSoftBrush}" Margin="0,20,0,7" />
+                                    <ComboBox ItemsSource="{Binding TargetFormats}" SelectedItem="{Binding SelectedTargetFormat}" Height="40" />
+
+                                    <StackPanel Visibility="{Binding IsRenderDpiAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <TextBlock Text="输出清晰度" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource InkSoftBrush}" Margin="0,17,0,7" />
+                                        <ComboBox ItemsSource="{Binding DpiOptions}" SelectedItem="{Binding RenderDpi}" Height="40" />
+                                    </StackPanel>
+
+                                    <Border Background="{StaticResource CoolWashBrush}" BorderBrush="#331598A3" BorderThickness="1"
+                                            CornerRadius="7" Padding="12,11" Margin="0,16,0,0">
+                                        <StackPanel>
+                                            <CheckBox Content="启用 OCR 文字识别" IsChecked="{Binding EnableOcr}" IsEnabled="{Binding IsOcrAvailable}" />
+                                            <TextBlock Text="适合扫描件和图片型 PDF，识别后生成可编辑内容" FontSize="11" Foreground="{StaticResource MutedBrush}"
+                                                       TextWrapping="Wrap" Margin="26,7,0,0" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Background="{StaticResource PrimaryLightBrush}" CornerRadius="7" Padding="11,10" Margin="0,14,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                            <Path Data="{StaticResource SparkIcon}" Fill="{StaticResource PrimaryBrush}" Width="15" Height="15" Stretch="Uniform" Margin="0,1,9,0" />
+                                            <TextBlock Grid.Column="1" Text="{Binding ConversionModeDescription}" Foreground="{StaticResource MutedBrush}"
+                                                       TextWrapping="Wrap" FontSize="11.5" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Separator Margin="0,18" />
+
+                                    <TextBlock Text="输出位置" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource InkSoftBrush}" />
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <Border Background="{StaticResource SurfaceHoverBrush}" CornerRadius="7" Padding="10,9">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Data="{StaticResource FolderIcon}" Stroke="{StaticResource SecondaryBrush}" StrokeThickness="1.7" StrokeLineJoin="Round"
+                                                      Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                <TextBlock Text="{Binding OutputFolder}" FontSize="11.5" Foreground="{StaticResource TextBrush}"
+                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" MaxWidth="185" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Button Grid.Column="1" Command="{Binding ChooseOutputFolderCommand}" ToolTip="选择输出目录" Style="{StaticResource IconButton}" Margin="6,0,0,0">
+                                            <Path Data="{StaticResource FolderIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7" StrokeLineJoin="Round"
+                                                  Width="18" Height="18" Stretch="Uniform" />
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <Border Grid.Row="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="18,14" Background="#FCFFFFFF">
+                                <Button Command="{Binding StartConversionCommand}" Style="{StaticResource PrimaryButton}" Height="44">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Path Data="{StaticResource PlayIcon}" Fill="White" Width="15" Height="15" Stretch="Uniform" Margin="0,0,8,0" />
+                                            <TextBlock Text="开始转换" FontSize="14" />
+                                        </StackPanel>
+                                        <Path Grid.Column="1" Data="{StaticResource ArrowRightIcon}" Stroke="White" StrokeThickness="1.8"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                                    </Grid>
+                                </Button>
                             </Border>
                         </Grid>
                     </Border>
-
-                    <Border Grid.Row="1" Margin="0,12" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
-                        <Grid>
-                            <DataGrid ItemsSource="{Binding ConversionJobs}" AutoGenerateColumns="False" CanUserAddRows="False">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="文件" Binding="{Binding FileName}" Width="2.2*" />
-                                    <DataGridTextColumn Header="类型" Binding="{Binding FileType}" Width="78" />
-                                    <DataGridTextColumn Header="状态" Binding="{Binding Message}" Width="1.5*" />
-                                    <DataGridTemplateColumn Header="进度" Width="170"><DataGridTemplateColumn.CellTemplate><DataTemplate><ProgressBar Value="{Binding Progress}" Height="7" Margin="10,0" Foreground="{StaticResource SecondaryBrush}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="输出" Width="90"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Content="打开位置" Height="30" Padding="8,0" Command="{Binding DataContext.OpenOutputCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                            <Grid>
-                                <Grid.Style><Style TargetType="Grid"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding ConversionJobs.Count}" Value="0"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></Grid.Style>
-                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="390">
-                                    <Image Source="pack://application:,,,/Assets/conversion-empty.png" Width="230" Height="154" Stretch="Uniform" IsHitTestVisible="False" />
-                                    <TextBlock Text="把文件拖到这里" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,10,0,0" IsHitTestVisible="False" />
-                                    <TextBlock Text="支持 PDF、Office、图片与 TXT，转换任务可批量执行" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,6,0,0" IsHitTestVisible="False" />
-                                    <Button Command="{Binding AddConversionFilesCommand}" Style="{StaticResource PrimaryButton}" Margin="0,18,0,0" HorizontalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal"><Path Data="{StaticResource AddIcon}" Stroke="White" StrokeThickness="2" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" /><TextBlock Text="添加文件" /></StackPanel>
-                                    </Button>
-                                </StackPanel>
-                            </Grid>
-                        </Grid>
-                    </Border>
-
-                    <Grid Grid.Row="2">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="10" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="12" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <TextBlock Text="输出目录" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" />
-                        <TextBox Grid.Column="1" Text="{Binding OutputFolder}" Margin="10,0,0,0" IsReadOnly="True" />
-                        <Button Grid.Column="3" Command="{Binding ChooseOutputFolderCommand}" ToolTip="选择输出目录" Style="{StaticResource IconButton}"><Path Data="{StaticResource FolderIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7" StrokeLineJoin="Round" Width="18" Height="18" Stretch="Uniform" /></Button>
-                        <Button Grid.Column="5" Command="{Binding StartConversionCommand}" Style="{StaticResource PrimaryButton}" MinWidth="122">
-                            <StackPanel Orientation="Horizontal"><Path Data="{StaticResource PlayIcon}" Fill="White" Width="15" Height="15" Stretch="Uniform" Margin="0,0,8,0" /><TextBlock Text="开始转换" /></StackPanel>
-                        </Button>
-                    </Grid>
                 </Grid>
             </TabItem>
 
+            <!-- ========== 去水印标签页 ========== -->
             <TabItem Header="去水印">
-                <Grid Margin="0,10,0,0">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="240" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8">
-                        <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-                            <Button Margin="12" Command="{Binding AddWatermarkFilesCommand}" Style="{StaticResource PrimaryButton}"><StackPanel Orientation="Horizontal"><Path Data="{StaticResource AddIcon}" Stroke="White" StrokeThickness="2" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" /><TextBlock Text="添加待处理文件" /></StackPanel></Button>
-                            <ListBox Grid.Row="1" ItemsSource="{Binding WatermarkFiles}" SelectedItem="{Binding SelectedWatermarkFile}" BorderThickness="0" Margin="6"><ListBox.ItemTemplate><DataTemplate><StackPanel Margin="8,7"><TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" FontWeight="SemiBold" /><TextBlock Text="{Binding Message}" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,3,0,0" /></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox>
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="250" /><ColumnDefinition Width="14" /><ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" /><ColumnDefinition Width="280" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 左侧：文件列表 -->
+                    <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="12" Effect="{StaticResource CardShadow}">
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <StackPanel Margin="14,14,14,8">
+                                <TextBlock Text="待处理文件" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" />
+                                <TextBlock Text="支持 PDF / Office / 图片" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" />
+                                <Button Command="{Binding AddWatermarkFilesCommand}" Style="{StaticResource PrimaryButton}" Margin="0,12,0,0" Height="36">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource AddIcon}" Stroke="White" StrokeThickness="2.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                              Width="15" Height="15" Stretch="Uniform" Margin="0,0,6,0" />
+                                        <TextBlock Text="添加文件" FontSize="12.5" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            <ListBox Grid.Row="1" ItemsSource="{Binding WatermarkFiles}" SelectedItem="{Binding SelectedWatermarkFile}" Margin="8,0,8,8">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                            <Border Width="34" Height="34" CornerRadius="8" Background="{StaticResource PrimaryLightBrush}" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource FileIcon}" Stroke="{StaticResource PrimaryBrush}" StrokeThickness="1.5"
+                                                      Width="17" Height="17" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" FontWeight="SemiBold" FontSize="12.5" />
+                                                <TextBlock Text="{Binding Message}" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="2" Background="{StaticResource PreviewBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
-                        <Grid x:Name="PreviewHost" Background="{StaticResource PreviewBrush}" MouseLeftButtonDown="Preview_MouseLeftButtonDown" MouseMove="Preview_MouseMove" MouseLeftButtonUp="Preview_MouseLeftButtonUp">
-                            <Image x:Name="PreviewImageControl" Source="{Binding PreviewImage}" Stretch="Uniform" Margin="18" />
-                            <Canvas x:Name="SelectionCanvas" Margin="18" IsHitTestVisible="False" SizeChanged="SelectionCanvas_SizeChanged" />
-                            <TextBlock Text="选择图片或 PDF 后可在此框选水印" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" IsHitTestVisible="False"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding PreviewImage}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
-                            <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12" Background="#F2FFFFFF" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="7" Padding="5">
+                    <!-- 中间：预览区 -->
+                    <Border Grid.Column="2" Background="{StaticResource PreviewBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="12" ClipToBounds="True" Effect="{StaticResource CardShadow}">
+                        <Grid x:Name="PreviewHost" Background="{StaticResource PreviewBrush}"
+                              MouseLeftButtonDown="Preview_MouseLeftButtonDown" MouseMove="Preview_MouseMove" MouseLeftButtonUp="Preview_MouseLeftButtonUp">
+                            <Image x:Name="PreviewImageControl" Source="{Binding PreviewImage}" Stretch="Uniform" Margin="20" />
+                            <Canvas x:Name="SelectionCanvas" Margin="20" IsHitTestVisible="False" SizeChanged="SelectionCanvas_SizeChanged" />
+
+                            <!-- 空预览提示 -->
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PreviewImage}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <Border Width="72" Height="72" CornerRadius="18" Background="White" Effect="{StaticResource CardShadow}" HorizontalAlignment="Center">
+                                    <Path Data="{StaticResource DropIcon}" Fill="{StaticResource MutedBrush}" Width="34" Height="34" Stretch="Uniform"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5" />
+                                </Border>
+                                <TextBlock Text="选择文件后可在此预览并框选水印" FontSize="14" Foreground="{StaticResource MutedBrush}"
+                                           HorizontalAlignment="Center" Margin="0,16,0,0" />
+                                <TextBlock Text="支持 PDF 翻页和多帧 TIFF 逐帧选择" FontSize="12" Foreground="{StaticResource PlaceholderBrush}"
+                                           HorizontalAlignment="Center" Margin="0,5,0,0" />
+                            </StackPanel>
+
+                            <!-- 翻页控件 -->
+                            <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,14"
+                                    Background="#F5FFFFFF" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="6,4"
+                                    Effect="{StaticResource CardShadow}">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PreviewImage}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button Command="{Binding PreviousPreviewPageCommand}" ToolTip="上一页" Style="{StaticResource IconButton}" IsEnabled="{Binding HasPreviousPreviewPage}"><Path Data="{StaticResource ChevronLeftIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="2" Width="16" Height="16" Stretch="Uniform" /></Button>
-                                    <TextBlock Text="{Binding PreviewPageText}" VerticalAlignment="Center" Margin="12,0" MinWidth="58" TextAlignment="Center" />
-                                    <Button Command="{Binding NextPreviewPageCommand}" ToolTip="下一页" Style="{StaticResource IconButton}" IsEnabled="{Binding HasNextPreviewPage}"><Path Data="{StaticResource ChevronRightIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="2" Width="16" Height="16" Stretch="Uniform" /></Button>
+                                    <Button Command="{Binding PreviousPreviewPageCommand}" ToolTip="上一页" Style="{StaticResource IconButton}"
+                                            IsEnabled="{Binding HasPreviousPreviewPage}" Height="30" Width="30">
+                                        <Path Data="{StaticResource ChevronLeftIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="2"
+                                              Width="15" Height="15" Stretch="Uniform" />
+                                    </Button>
+                                    <TextBlock Text="{Binding PreviewPageText}" VerticalAlignment="Center" Margin="10,0" MinWidth="60"
+                                               TextAlignment="Center" FontSize="12.5" FontWeight="SemiBold" />
+                                    <Button Command="{Binding NextPreviewPageCommand}" ToolTip="下一页" Style="{StaticResource IconButton}"
+                                            IsEnabled="{Binding HasNextPreviewPage}" Height="30" Width="30">
+                                        <Path Data="{StaticResource ChevronRightIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="2"
+                                              Width="15" Height="15" Stretch="Uniform" />
+                                    </Button>
                                 </StackPanel>
                             </Border>
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="4" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
-                            <TextBlock Text="检测与选区" FontSize="16" FontWeight="SemiBold" />
-                            <Button Command="{Binding DetectWatermarksCommand}" Margin="0,12,0,0"><StackPanel Orientation="Horizontal"><Path Data="{StaticResource SearchIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" /><TextBlock Text="检测候选" /></StackPanel></Button>
-                            <ItemsControl ItemsSource="{Binding Candidates}" Margin="0,8,0,0"><ItemsControl.ItemTemplate><DataTemplate><Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="0,8"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Margin="0,0,8,0" /><StackPanel Grid.Column="1"><TextBlock Text="{Binding Label}" TextWrapping="Wrap" /><TextBlock Text="{Binding Kind}" Foreground="{StaticResource MutedBrush}" FontSize="11" /></StackPanel><TextBlock Grid.Column="2" Text="{Binding Confidence}" Foreground="{StaticResource SecondaryBrush}" /></Grid></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-                            <TextBlock Text="手动选区" FontWeight="SemiBold" Margin="0,18,0,0" />
-                            <TextBlock Text="在预览中拖动鼠标；自动候选只推荐，不会直接删除。" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,5,0,0" />
-                            <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{Binding Regions.Count, StringFormat=已选 {0} 个区域}" VerticalAlignment="Center" /><Button Grid.Column="1" Command="{Binding ClearRegionsCommand}" ToolTip="清除选区" Style="{StaticResource IconButton}"><Path Data="{StaticResource TrashIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform" /></Button></Grid>
-                            <Separator Margin="0,16" />
-                            <TextBlock Text="作用范围" FontWeight="SemiBold" />
-                            <ComboBox ItemsSource="{Binding WatermarkScopes}" SelectedItem="{Binding SelectedWatermarkScope}" DisplayMemberPath="Label" Margin="0,9,0,0" />
-                            <TextBlock Text="页码范围，例如 1,3-5" Foreground="{StaticResource MutedBrush}" Margin="0,9,0,3" />
-                            <TextBox Text="{Binding PageRange}" IsEnabled="{Binding IsPageRangeScope}" />
-                            <Separator Margin="0,16" />
-                            <TextBlock Text="仅处理您有权修改的文档。密码、DRM、权限限制和数字签名文件会被拒绝。" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" />
-                            <Button Command="{Binding RemoveWatermarkCommand}" Style="{StaticResource PrimaryButton}" Margin="0,16,0,0"><StackPanel Orientation="Horizontal"><Path Data="{StaticResource SparkIcon}" Fill="White" Width="15" Height="15" Stretch="Uniform" Margin="0,0,8,0" /><TextBlock Text="生成无水印副本" /></StackPanel></Button>
-                        </StackPanel></ScrollViewer>
+                    <!-- 右侧：控制面板 -->
+                    <Border Grid.Column="4" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="12" ClipToBounds="True" Effect="{StaticResource CardShadow}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ModernScrollViewer}">
+                                <StackPanel Margin="16,16,16,18">
+                                <!-- 检测候选 -->
+                                <TextBlock Text="智能检测" FontSize="15" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                                <TextBlock Text="自动识别水印候选，需手动勾选确认" FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                <Button Command="{Binding DetectWatermarksCommand}" Margin="0,12,0,0" Height="36">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource SearchIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7"
+                                              Width="15" Height="15" Stretch="Uniform" Margin="0,0,7,0" />
+                                        <TextBlock Text="检测水印候选" FontSize="12.5" />
+                                    </StackPanel>
+                                </Button>
+                                <ItemsControl ItemsSource="{Binding Candidates}" Margin="0,10,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="0,9">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                                    <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding Label}" TextWrapping="Wrap" FontSize="12.5" />
+                                                        <TextBlock Text="{Binding Kind}" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                    <Border Grid.Column="2" Background="{StaticResource SecondaryLightBrush}" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Confidence}" Foreground="{StaticResource SecondaryBrush}" FontSize="11" FontWeight="SemiBold" />
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- 手动选区 -->
+                                <Border Background="{StaticResource SurfaceHoverBrush}" CornerRadius="10" Padding="12" Margin="0,16,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="手动框选" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" />
+                                        <TextBlock Text="在左侧预览区拖动鼠标框选水印区域" Foreground="{StaticResource MutedBrush}" FontSize="11.5" TextWrapping="Wrap" Margin="0,5,0,0" />
+                                        <Grid Margin="0,10,0,0">
+                                            <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                            <Border Background="White" CornerRadius="6" Padding="8,5" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Regions.Count, StringFormat=已选 {0} 个区域}" FontSize="12" Foreground="{StaticResource TextBrush}" />
+                                            </Border>
+                                            <Button Grid.Column="1" Command="{Binding ClearRegionsCommand}" ToolTip="清除选区" Style="{StaticResource IconButton}" Height="30" Width="30">
+                                                <Path Data="{StaticResource TrashIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7" Width="15" Height="15" Stretch="Uniform" />
+                                            </Button>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <Separator Margin="0,16" />
+
+                                <!-- 作用范围 -->
+                                <TextBlock Text="作用范围" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" />
+                                <ComboBox ItemsSource="{Binding WatermarkScopes}" SelectedItem="{Binding SelectedWatermarkScope}"
+                                          DisplayMemberPath="Label" Margin="0,10,0,0" />
+                                <TextBlock Text="页码范围，例如 1,3-5" Foreground="{StaticResource MutedBrush}" FontSize="11.5" Margin="0,10,0,4" />
+                                <TextBox Text="{Binding PageRange}" IsEnabled="{Binding IsPageRangeScope}" />
+
+                                <Separator Margin="0,16" />
+
+                                <!-- 安全提示 -->
+                                <Border Background="{StaticResource WarningLightBrush}" CornerRadius="8" Padding="10,9" BorderBrush="{StaticResource WarningBrush}" BorderThickness="1" Opacity="0.8">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource ShieldIcon}" Stroke="{StaticResource WarningBrush}" StrokeThickness="1.5"
+                                              Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBlock Text="仅处理您有权修改的文档。密码、DRM、权限限制和数字签名文件会被拒绝。"
+                                                   Foreground="{StaticResource WarningBrush}" FontSize="11.5" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <Border Grid.Row="1" Background="#FCFFFFFF" BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="0,1,0,0" Padding="16,13">
+                                <Button Command="{Binding RemoveWatermarkCommand}" Style="{StaticResource PrimaryButton}" Height="44">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource SparkIcon}" Fill="White" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" />
+                                        <TextBlock Text="生成无水印副本" FontSize="13.5" />
+                                    </StackPanel>
+                                </Button>
+                            </Border>
+                        </Grid>
                     </Border>
                 </Grid>
             </TabItem>
         </TabControl>
 
-        <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
-            <Grid Margin="18,0"><TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis" /><Button Content="取消" Command="{Binding CancelCommand}" HorizontalAlignment="Right" Height="28" Padding="10,0" VerticalAlignment="Center" /></Grid>
+        <!-- ==================== 底部状态栏 ==================== -->
+        <Border Grid.Row="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Grid Margin="20,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="6" Height="6" Fill="{StaticResource SecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}"
+                               TextTrimming="CharacterEllipsis" FontSize="12.5" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="取消任务" Command="{Binding CancelCommand}" Height="30" Padding="14,0"
+                        VerticalAlignment="Center" FontSize="12" />
+            </Grid>
         </Border>
     </Grid>
 </Window>
