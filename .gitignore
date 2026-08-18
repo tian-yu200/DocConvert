@@ -1,0 +1,14 @@
+.vs/
+.idea/
+**/bin/
+**/obj/
+artifacts/
+installer/Payload.wxs
+TestResults/
+*.user
+*.suo
+*.nupkg
+*.snupkg
+*.log
+Thumbs.db
+Desktop.ini

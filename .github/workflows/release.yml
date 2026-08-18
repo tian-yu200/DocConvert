@@ -1,0 +1,123 @@
+name: build-and-release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows-build:
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Verify legal files
+        shell: pwsh
+        run: |
+          $required = 'LICENSE', 'README.md', 'THIRD_PARTY_NOTICES.md',
+            'assets/ui/conversion-empty.png', 'assets/ui/docconvert-icon.png', 'assets/ui/DocConvert.ico'
+          foreach ($file in $required) {
+            if (-not (Test-Path $file)) { throw "Missing required file: $file" }
+          }
+          $iconBytes = [System.IO.File]::ReadAllBytes('assets/ui/DocConvert.ico')
+          $frameCount = [BitConverter]::ToUInt16($iconBytes, 4)
+          if ($frameCount -ne 7) { throw "Expected 7 icon frames, found $frameCount." }
+          $iconSizes = for ($index = 0; $index -lt $frameCount; $index++) {
+            $value = $iconBytes[6 + ($index * 16)]
+            if ($value -eq 0) { 256 } else { [int]$value }
+          }
+          $expectedIconSizes = 16, 24, 32, 48, 64, 128, 256
+          if (Compare-Object $expectedIconSizes $iconSizes) {
+            throw "Unexpected icon sizes: $($iconSizes -join ', ')"
+          }
+          if (Select-String -Path src/**/*.csproj -Pattern 'PyMuPDF|iText|Ghostscript' -Quiet) {
+            throw 'A prohibited AGPL/commercial dependency was found.'
+          }
+
+      - name: Restore
+        run: dotnet restore DocConvert.sln
+
+      - name: Build
+        run: dotnet build DocConvert.sln -c Release --no-restore
+
+      - name: Test and Open XML validation
+        run: dotnet test DocConvert.sln -c Release --no-build --logger "trx;LogFileName=tests.trx"
+
+      - name: Publish self-contained application
+        run: >-
+          dotnet publish src/DocConvert.App/DocConvert.App.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=false
+          -o artifacts/publish/win-x64
+
+      - name: Verify publish payload
+        shell: pwsh
+        run: |
+          $required = @(
+            'artifacts/publish/win-x64/DocConvert.exe',
+            'artifacts/publish/win-x64/tessdata/eng.traineddata',
+            'artifacts/publish/win-x64/tessdata/chi_sim.traineddata'
+          )
+          foreach ($file in $required) {
+            if (-not (Test-Path $file)) { throw "Missing publish payload: $file" }
+          }
+          $version = (Get-Item 'artifacts/publish/win-x64/DocConvert.exe').VersionInfo.ProductVersion
+          if (-not $version.StartsWith('0.2.0')) { throw "Unexpected product version: $version" }
+          if (-not (Get-ChildItem artifacts/publish/win-x64 -Recurse -Filter 'OpenCvSharpExtern.dll')) { throw 'OpenCV native runtime missing.' }
+          if (-not (Get-ChildItem artifacts/publish/win-x64 -Recurse -Filter 'pdfium.dll')) { throw 'PDFium native runtime missing.' }
+          if (-not (Get-ChildItem artifacts/publish/win-x64 -Recurse -Filter 'leptonica-*.dll')) { throw 'Tesseract/Leptonica native runtime missing.' }
+
+      - name: Generate WiX payload
+        shell: pwsh
+        run: ./installer/GeneratePayload.ps1 -PublishDir artifacts/publish/win-x64 -OutputFile installer/Payload.wxs
+
+      - name: Build MSI
+        shell: pwsh
+        run: |
+          $publish = (Resolve-Path artifacts/publish/win-x64).Path
+          $output = Join-Path $pwd 'artifacts/installer/'
+          dotnet build installer/DocConvert.Installer.wixproj -c Release -p:PublishDir="$publish" -p:OutputPath="$output"
+
+      - name: Package ZIP and checksums
+        shell: pwsh
+        run: |
+          Compress-Archive -Path artifacts/publish/win-x64/* -DestinationPath artifacts/DocConvert-win-x64.zip -Force
+          $releaseFiles = @(
+            'artifacts/DocConvert-win-x64.zip'
+          ) + (Get-ChildItem artifacts/installer -Filter '*.msi' | Select-Object -ExpandProperty FullName)
+          $lines = foreach ($file in $releaseFiles) {
+            $hash = Get-FileHash $file -Algorithm SHA256
+            "$($hash.Hash)  $([System.IO.Path]::GetFileName($file))"
+          }
+          $lines | Set-Content artifacts/SHA256SUMS.txt -Encoding ascii
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DocConvert-win-x64
+          path: |
+            artifacts/installer/*.msi
+            artifacts/DocConvert-win-x64.zip
+            artifacts/SHA256SUMS.txt
+            **/TestResults/*.trx
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/installer/*.msi
+            artifacts/DocConvert-win-x64.zip
+            artifacts/SHA256SUMS.txt

@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="WindowColor">#F7F8FA</Color>
+    <Color x:Key="PanelColor">#FFFFFF</Color>
+    <Color x:Key="PrimaryColor">#D86A52</Color>
+    <Color x:Key="PrimaryHoverColor">#C65D47</Color>
+    <Color x:Key="PrimaryPressedColor">#AF4F3C</Color>
+    <Color x:Key="SecondaryColor">#3F7C78</Color>
+    <Color x:Key="SecondarySoftColor">#EAF3F2</Color>
+    <Color x:Key="TextColor">#263445</Color>
+    <Color x:Key="MutedColor">#6E7B89</Color>
+    <Color x:Key="BorderColor">#DDE2E8</Color>
+    <Color x:Key="SurfaceHoverColor">#F3F5F7</Color>
+    <Color x:Key="DisabledColor">#E8EBEF</Color>
+    <Color x:Key="PreviewColor">#ECEFF2</Color>
+    <Color x:Key="WarningColor">#A34E35</Color>
+
+    <SolidColorBrush x:Key="WindowBrush" Color="{StaticResource WindowColor}" />
+    <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
+    <SolidColorBrush x:Key="PrimaryPressedBrush" Color="{StaticResource PrimaryPressedColor}" />
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}" />
+    <SolidColorBrush x:Key="SecondarySoftBrush" Color="{StaticResource SecondarySoftColor}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="MutedBrush" Color="{StaticResource MutedColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource SurfaceHoverColor}" />
+    <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}" />
+    <SolidColorBrush x:Key="PreviewBrush" Color="{StaticResource PreviewColor}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+</ResourceDictionary>
