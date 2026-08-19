@@ -65,6 +65,7 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private WatermarkScopeOption selectedWatermarkScope = new("全部页面 / 帧", WatermarkScope.AllPages);
 
     public bool IsPageRangeScope => SelectedWatermarkScope.Value == WatermarkScope.PageRange;
+    public bool IsNotBusy => !IsBusy;
     public bool IsPptOutput => SelectedTargetFormat.Equals("PPTX", StringComparison.OrdinalIgnoreCase);
     public bool IsImageOutput => SelectedTargetFormat is "JPG" or "PNG";
     public bool IsRenderDpiAvailable => IsPptOutput || IsImageOutput;
@@ -89,6 +90,7 @@ public sealed partial class MainViewModel : ObservableObject
     partial void OnSelectedTargetFormatChanged(string value)
     {
         if (!IsOcrAvailable) EnableOcr = false;
+        RefreshPendingConversionMessages();
         OnPropertyChanged(nameof(IsPptOutput));
         OnPropertyChanged(nameof(IsImageOutput));
         OnPropertyChanged(nameof(IsRenderDpiAvailable));
@@ -96,7 +98,13 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(ConversionModeDescription));
     }
 
-    partial void OnEnableOcrChanged(bool value) => OnPropertyChanged(nameof(ConversionModeDescription));
+    partial void OnEnableOcrChanged(bool value)
+    {
+        RefreshPendingConversionMessages();
+        OnPropertyChanged(nameof(ConversionModeDescription));
+    }
+
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(IsNotBusy));
 
     partial void OnPreviewPageIndexChanged(int value)
     {
@@ -149,31 +157,42 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task StartConversionAsync()
     {
         if (ConversionJobs.Count == 0 || IsBusy) return;
-        var unsupported = ConversionJobs
+        var pending = ConversionJobs
             .Where(item => item.State is JobState.Waiting or JobState.Failed)
-            .Where(item => !IsSupportedConversion(item.InputPath, SelectedTargetFormat, EnableOcr))
-            .Select(item => item.FileName)
             .ToArray();
-        if (unsupported.Length > 0)
+
+        var supported = ConversionRoute.SelectSupported(pending, item => item.InputPath, SelectedTargetFormat, EnableOcr).ToArray();
+        var supportedSet = supported.ToHashSet();
+        var unsupported = pending.Where(item => !supportedSet.Contains(item)).ToArray();
+        foreach (var item in unsupported)
         {
-            StatusText = $"当前输出格式不支持：{string.Join("、", unsupported.Take(3))}{(unsupported.Length > 3 ? " 等" : string.Empty)}";
-            return;
+            item.Message = $"不适用于 {SelectedTargetFormat}，未处理";
         }
-        var missingOffice = ConversionJobs
-            .Where(item => item.State is JobState.Waiting or JobState.Failed)
+
+        var missingOffice = supported
             .Select(item => (Item: item, Installed: OfficeAvailability.IsInstalledForRoute(item.InputPath, "." + SelectedTargetFormat.ToLowerInvariant(), out var requirement), Requirement: requirement))
             .Where(result => !result.Installed)
             .ToArray();
-        if (missingOffice.Length > 0)
+        foreach (var result in missingOffice)
         {
-            StatusText = $"{missingOffice[0].Item.FileName} 需要安装 Microsoft {missingOffice[0].Requirement}。";
+            result.Item.Message = $"需要安装 Microsoft {result.Requirement}，未处理";
+        }
+
+        var blockedByOffice = missingOffice.Select(result => result.Item).ToHashSet();
+        var runnable = supported.Where(item => !blockedByOffice.Contains(item)).ToArray();
+        if (runnable.Length == 0)
+        {
+            StatusText = BuildNoRunnableJobsMessage(unsupported.Length, missingOffice.Length);
             return;
         }
+
         IsBusy = true;
         _cancellation = new CancellationTokenSource();
+        var completed = 0;
+        var failed = 0;
         try
         {
-            foreach (var job in ConversionJobs.Where(item => item.State is JobState.Waiting or JobState.Failed).ToArray())
+            foreach (var job in runnable)
             {
                 _cancellation.Token.ThrowIfCancellationRequested();
                 var output = BuildConversionOutput(job.InputPath);
@@ -196,7 +215,11 @@ public sealed partial class MainViewModel : ObservableObject
                     StatusText = value.Message;
                 }), _cancellation.Token);
                 ApplyResult(job, result);
+                if (result.Success) completed++;
+                else failed++;
             }
+
+            StatusText = BuildConversionSummary(completed, failed, unsupported.Length + missingOffice.Length);
         }
         catch (OperationCanceledException)
         {
@@ -218,6 +241,14 @@ public sealed partial class MainViewModel : ObservableObject
     {
         foreach (var item in ConversionJobs.Where(item => item.State is JobState.Completed or JobState.CompletedWithWarnings or JobState.Cancelled).ToArray())
             ConversionJobs.Remove(item);
+    }
+
+    [RelayCommand]
+    private void RemoveConversionJob(JobEntryViewModel? item)
+    {
+        if (item is null || IsBusy) return;
+        ConversionJobs.Remove(item);
+        StatusText = ConversionJobs.Count == 0 ? "就绪" : $"已移除 {item.FileName}";
     }
 
     [RelayCommand]
@@ -460,21 +491,32 @@ public sealed partial class MainViewModel : ObservableObject
         item.WarningText = string.Join("；", result.Warnings.Select(warning => warning.Message));
     }
 
-    private static bool IsSupportedConversion(string inputPath, string targetFormat, bool enableOcr)
+    private static string BuildNoRunnableJobsMessage(int unsupportedCount, int missingOfficeCount)
     {
-        var input = Path.GetExtension(inputPath).ToLowerInvariant();
-        var output = "." + targetFormat.ToLowerInvariant();
-        return (input, output) switch
+        if (unsupportedCount > 0 && missingOfficeCount > 0)
+            return $"没有可执行的任务：{unsupportedCount} 个格式不适用，{missingOfficeCount} 个缺少 Office。";
+        if (missingOfficeCount > 0)
+            return $"没有可执行的任务：{missingOfficeCount} 个任务缺少所需的 Microsoft Office。";
+        if (unsupportedCount > 0)
+            return $"没有可执行的任务：{unsupportedCount} 个文件不适用于当前输出格式。";
+        return "没有等待处理的任务。";
+    }
+
+    private static string BuildConversionSummary(int completed, int failed, int skipped)
+    {
+        var summary = $"转换结束：{completed} 个完成";
+        if (failed > 0) summary += $"，{failed} 个失败";
+        if (skipped > 0) summary += $"，{skipped} 个未处理";
+        return summary + "。";
+    }
+
+    private void RefreshPendingConversionMessages()
+    {
+        foreach (var item in ConversionJobs.Where(item => item.State is JobState.Waiting or JobState.Failed))
         {
-            (".pdf", ".docx") => true,
-            (".pdf", ".pptx") => true,
-            (".pdf", ".jpg") or (".pdf", ".png") => true,
-            (".pdf", ".pdf") => enableOcr,
-            (".docx", ".pdf") or (".xlsx", ".pdf") or (".pptx", ".pdf") => true,
-            (".jpg", ".pdf") or (".jpeg", ".pdf") or (".png", ".pdf") or (".bmp", ".pdf") or (".tif", ".pdf") or (".tiff", ".pdf") => true,
-            (".txt", ".pdf") => true,
-            _ => false
-        };
+            if (item.Message.EndsWith("，未处理", StringComparison.Ordinal))
+                item.Message = item.State == JobState.Failed && !string.IsNullOrWhiteSpace(item.Error) ? item.Error : "等待处理";
+        }
     }
 }
 

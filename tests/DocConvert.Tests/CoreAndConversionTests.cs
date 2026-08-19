@@ -313,6 +313,47 @@ public sealed class CoreAndConversionTests : IDisposable
     }
 
     [Fact]
+    public async Task PdfWatermarkRemoval_PreservesDisplayedRatioOfRotatedPage()
+    {
+        var input = Path.Combine(_root, "rotated-watermark.pdf");
+        var output = Path.Combine(_root, "rotated-watermark-cleaned.pdf");
+        using (var pdf = new PdfDocument())
+        {
+            var page = pdf.AddPage();
+            page.Width = XUnit.FromPoint(144);
+            page.Height = XUnit.FromPoint(288);
+            page.Rotate = 90;
+            using var graphics = XGraphics.FromPdfPage(page);
+            graphics.DrawRectangle(XBrushes.White, 0, 0, page.Width.Point, page.Height.Point);
+            graphics.DrawRectangle(new XSolidBrush(XColor.FromArgb(190, 190, 190)), 45, 105, 55, 70);
+            pdf.Save(input);
+        }
+
+        var request = Request(input, output) with
+        {
+            Kind = JobKind.RemoveWatermark,
+            Watermark = new WatermarkOptions
+            {
+                Regions = [new WatermarkRegion(0, 0.3, 0.3, 0.4, 0.4)]
+            }
+        };
+        var result = await new PdfWatermarkEngine().ExecuteAsync(request, null, CancellationToken.None);
+        Assert.True(result.Success, result.Error);
+
+        using var source = PdfSharp.Pdf.IO.PdfReader.Open(input, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
+        using var cleaned = PdfSharp.Pdf.IO.PdfReader.Open(output, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
+        var sourcePage = source.Pages[0];
+        var cleanedPage = cleaned.Pages[0];
+        var sourceDisplayedWidth = sourcePage.Rotate % 180 == 0 ? sourcePage.Width.Point : sourcePage.Height.Point;
+        var sourceDisplayedHeight = sourcePage.Rotate % 180 == 0 ? sourcePage.Height.Point : sourcePage.Width.Point;
+
+        Assert.Equal(sourceDisplayedWidth / sourceDisplayedHeight, cleanedPage.Width.Point / cleanedPage.Height.Point, 6);
+        Assert.Equal(sourceDisplayedWidth, cleanedPage.Width.Point, 1);
+        Assert.Equal(sourceDisplayedHeight, cleanedPage.Height.Point, 1);
+        Assert.Equal(0, cleanedPage.Rotate);
+    }
+
+    [Fact]
     public void Safety_RejectsReadOnlyAndSignedPdfMarkers()
     {
         var readOnly = Path.Combine(_root, "readonly.txt");

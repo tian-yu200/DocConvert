@@ -75,8 +75,10 @@ public sealed class PdfWatermarkEngine : IWatermarkRemovalEngine, IWatermarkDete
             else
             {
                 var page = outputPdf.AddPage();
-                page.Width = source.Pages[index].Width;
-                page.Height = source.Pages[index].Height;
+                // PDF rendering applies /Rotate. Rebuild processed pages using the rendered
+                // display dimensions so rotated pages are not stretched into the raw MediaBox.
+                page.Width = XUnit.FromPoint(pages[index].WidthPoints);
+                page.Height = XUnit.FromPoint(pages[index].HeightPoints);
                 using var graphics = XGraphics.FromPdfPage(page);
                 using var image = XImage.FromFile(imagePath);
                 graphics.DrawImage(image, 0, 0, page.Width.Point, page.Height.Point);

@@ -5,9 +5,35 @@ namespace DocConvert.Core;
 public enum JobKind { Convert, RemoveWatermark }
 public enum JobState { Waiting, Running, Completed, CompletedWithWarnings, Failed, Cancelled }
 public enum WatermarkScope { CurrentPage, PageRange, AllPages }
+public enum PdfEditKind { Text, Image, TextReplacement, Formula }
+public enum PdfEditSaveMode { Overlay, NativeContent, SecureRasterized }
 
 public sealed record WatermarkRegion(
     int PageIndex, double X, double Y, double Width, double Height, bool IsNormalized = true);
+
+public sealed record PdfEditElement
+{
+    public required Guid Id { get; init; }
+    public required PdfEditKind Kind { get; init; }
+    public required int PageIndex { get; init; }
+    public required double X { get; init; }
+    public required double Y { get; init; }
+    public required double Width { get; init; }
+    public required double Height { get; init; }
+    public string Text { get; init; } = string.Empty;
+    public string OriginalText { get; init; } = string.Empty;
+    public string? ImagePath { get; init; }
+    public string FontFamily { get; init; } = "Microsoft YaHei";
+    public double FontSize { get; init; } = 12;
+    public uint ColorArgb { get; init; } = 0xFF111827;
+    public double? SourceX { get; init; }
+    public double? SourceY { get; init; }
+    public double? SourceWidth { get; init; }
+    public double? SourceHeight { get; init; }
+}
+
+public sealed record PdfTextBlock(
+    int PageIndex, string Text, double X, double Y, double Width, double Height, double FontSize);
 
 public sealed record ConversionOptions
 {

@@ -75,7 +75,9 @@ jobs:
             if (-not (Test-Path $file)) { throw "Missing publish payload: $file" }
           }
           $version = (Get-Item 'artifacts/publish/win-x64/PDFConverter.exe').VersionInfo.ProductVersion
-          if (-not $version.StartsWith('0.4.0')) { throw "Unexpected product version: $version" }
+          [xml]$buildProps = Get-Content 'Directory.Build.props'
+          $expectedVersion = $buildProps.Project.PropertyGroup.Version
+          if (-not $version.StartsWith($expectedVersion)) { throw "Unexpected product version: $version (expected $expectedVersion)" }
           if (-not (Get-ChildItem artifacts/publish/win-x64 -Recurse -Filter 'OpenCvSharpExtern.dll')) { throw 'OpenCV native runtime missing.' }
           if (-not (Get-ChildItem artifacts/publish/win-x64 -Recurse -Filter 'pdfium.dll')) { throw 'PDFium native runtime missing.' }
           if (-not (Get-ChildItem artifacts/publish/win-x64 -Recurse -Filter 'leptonica-*.dll')) { throw 'Tesseract/Leptonica native runtime missing.' }

@@ -262,6 +262,11 @@ public static class OfficeWorkerHost
 
     private static void ConvertPowerPoint(OfficeWorkerRequest request, Action<int> officeStarted)
     {
+        using var workspace = new JobWorkspace(Guid.NewGuid());
+        var stagedInput = workspace.PathFor("source.pptx");
+        var stagedOutput = workspace.PathFor("output.pdf");
+        File.Copy(request.InputPath, stagedInput, false);
+
         var type = Type.GetTypeFromProgID("PowerPoint.Application") ?? throw new InvalidOperationException("未检测到 Microsoft PowerPoint。");
         dynamic? app = null;
         dynamic? presentation = null;
@@ -271,9 +276,9 @@ public static class OfficeWorkerHost
             app = Activator.CreateInstance(type) ?? throw new InvalidOperationException("无法启动 Microsoft PowerPoint。");
             officeStarted(FindNewOfficeProcess("POWERPNT", previousProcesses));
             dynamic presentations = app.Presentations ?? throw new InvalidOperationException("PowerPoint 演示文稿集合不可用。");
-            presentation = presentations.Open(request.InputPath, -1, 0, 0);
+            presentation = presentations.Open(stagedInput, -1, 0, 0);
             if (presentation is null) throw new InvalidOperationException("PowerPoint 未能打开输入文件。");
-            presentation.SaveAs(request.OutputPath, 32);
+            presentation.SaveAs(stagedOutput, 32);
             Release(presentations);
         }
         catch (Exception exception)
@@ -286,6 +291,8 @@ public static class OfficeWorkerHost
             try { app?.Quit(); } catch { }
             Release(presentation); Release(app);
         }
+
+        workspace.Commit(stagedOutput, request.OutputPath);
     }
 
     private static void Release(object? value)

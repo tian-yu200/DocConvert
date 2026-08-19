@@ -1,14 +1,16 @@
 # Third-Party Notices
 
-PDF转换器 is licensed under the MIT License. The following pinned components are used by or shipped with version 0.4.0.
+PDF转换器 is licensed under the MIT License. The following pinned components are used by or shipped with version 0.6.0.
 
 | Component | Version | Purpose | License | Source |
 |---|---:|---|---|---|
 | CommunityToolkit.Mvvm | 8.4.2 | WPF MVVM source generators and commands | MIT | https://github.com/CommunityToolkit/dotnet |
+| CSharpMath.SkiaSharp | 0.5.1 | LaTeX-compatible formula parsing and SkiaSharp rendering | MIT | https://github.com/verybadcat/CSharpMath |
 | DocumentFormat.OpenXml | 3.5.1 | Create and modify DOCX, XLSX and PPTX packages | MIT | https://github.com/dotnet/Open-XML-SDK |
 | PDFtoImage | 5.4.0 | PDF page rendering API | MIT | https://github.com/sungaila/PDFtoImage |
 | bblanchon.PDFium.Win32 | 152.0.7961 | Windows PDFium native renderer used by PDFtoImage | BSD-3-Clause | https://github.com/bblanchon/pdfium-binaries |
 | PdfPig | 0.1.11 | PDF text and layout extraction | Apache-2.0 | https://github.com/UglyToad/PdfPig |
+| PdfLexer | 0.1.27 | Conservative PDF content-stream text mutation for native PDF editing | MIT | https://github.com/pdflexer/pdflexer |
 | PDFsharp | 6.2.3 | PDF creation, import and page assembly | MIT | https://github.com/empira/PDFsharp |
 | OpenCvSharp4 | 4.13.0.20260627 | .NET bindings for image masks and inpainting | Apache-2.0 | https://github.com/shimat/opencvsharp |
 | OpenCvSharp4.runtime.win | 4.13.0.20260627 | Windows OpenCV native runtime | Apache-2.0 | https://github.com/shimat/opencvsharp |

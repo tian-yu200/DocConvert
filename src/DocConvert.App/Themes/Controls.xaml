@@ -250,6 +250,18 @@
                                   Width="14" Height="14" Stretch="Uniform"
                                   VerticalAlignment="Center" HorizontalAlignment="Right" />
                         </Grid>
+                        <ToggleButton x:Name="DropDownToggle"
+                                      Background="Transparent"
+                                      BorderThickness="0"
+                                      ClickMode="Press"
+                                      Focusable="False"
+                                      IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="{TemplateBinding Background}" />
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
                         <Popup x:Name="PART_Popup" Placement="Bottom"
                                IsOpen="{TemplateBinding IsDropDownOpen}"
                                AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">

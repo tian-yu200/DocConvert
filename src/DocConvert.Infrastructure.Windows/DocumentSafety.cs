@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using PdfSharp.Pdf.IO;
 using UglyToad.PdfPig;
 
 namespace DocConvert.Infrastructure.Windows;
@@ -43,8 +44,23 @@ public static class DocumentSafety
             throw new InvalidOperationException("PDF 带有数字签名，已拒绝处理。应用不会移除签名。");
         try
         {
+            using var structureDocument = PdfLexer.PdfDocument.Open(path);
+            using (var securityDocument = PdfReader.Open(path, PdfDocumentOpenMode.Import))
+            {
+                if (securityDocument.SecuritySettings.IsEncrypted)
+                    throw new InvalidOperationException("PDF 已加密或受权限保护，已拒绝处理。应用不会移除密码或权限设置。");
+            }
             using var document = PdfDocument.Open(path);
             _ = document.NumberOfPages;
+        }
+        catch (PdfLexer.PdfLexerPasswordException exception)
+        {
+            throw new InvalidOperationException("PDF 已加密或受权限保护，已拒绝处理。应用不会移除密码或权限设置。", exception);
+        }
+        catch (InvalidOperationException exception) when (
+            exception.Message.Contains("应用不会移除密码或权限设置", StringComparison.Ordinal))
+        {
+            throw;
         }
         catch (Exception exception)
         {

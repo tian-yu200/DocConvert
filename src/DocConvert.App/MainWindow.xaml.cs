@@ -31,9 +31,23 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void Window_Drop(object sender, DragEventArgs e)
+    private async void Window_Drop(object sender, DragEventArgs e)
     {
         if (ViewModel is null || e.Data.GetData(DataFormats.FileDrop) is not string[] paths) return;
+        if (MainTabs.SelectedItem == PdfEditorTab)
+        {
+            var pdf = paths.FirstOrDefault(path => System.IO.Path.GetExtension(path).Equals(".pdf", StringComparison.OrdinalIgnoreCase));
+            if (pdf is not null) await ViewModel.LoadPdfEditorDocumentAsync(pdf);
+
+            var conversionPaths = paths.Where(path => !path.Equals(pdf, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (conversionPaths.Length > 0)
+            {
+                ViewModel.AddConversionPaths(conversionPaths);
+                ViewModel.StatusText = $"已将 {conversionPaths.Length} 个文件加入转换队列";
+                if (pdf is null) MainTabs.SelectedItem = ConversionTab;
+            }
+            return;
+        }
         var watermarkExtensions = new[] { ".pdf", ".docx", ".xlsx", ".pptx", ".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff" };
         ViewModel.AddConversionPaths(paths);
         ViewModel.AddWatermarkPaths(paths.Where(path => watermarkExtensions.Contains(System.IO.Path.GetExtension(path), StringComparer.OrdinalIgnoreCase)));

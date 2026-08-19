@@ -1,6 +1,7 @@
 <Window x:Class="DocConvert.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DocConvert.App"
         Title="PDF转换器" Width="1180" Height="760" MinWidth="980" MinHeight="640"
         WindowStartupLocation="CenterScreen" AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver"
         Icon="pack://application:,,,/Assets/DocConvert.ico">
@@ -23,6 +24,13 @@
         <Geometry x:Key="ArrowRightIcon">M5,12 H19 M14,7 L19,12 L14,17</Geometry>
         <Geometry x:Key="LockIcon">M7,10 V7 A5,5 0 0 1 17,7 V10 M5,10 H19 V21 H5 Z</Geometry>
         <Geometry x:Key="CheckIcon">M5,12 L10,17 L20,7</Geometry>
+        <Geometry x:Key="EditIcon">M4,20 H8 L19,9 L15,5 L4,16 Z M13,7 L17,11</Geometry>
+        <Geometry x:Key="TextIcon">M5,5 H19 M12,5 V19 M8,19 H16</Geometry>
+        <Geometry x:Key="FormulaIcon">M18,5 H9 L6,12 L9,19 H18 M13,8 L17,16 M17,8 L13,16</Geometry>
+        <Geometry x:Key="ImageIcon">M4,5 H20 V19 H4 Z M7,15 L10,12 L13,15 L16,11 L20,16 M8,9 A1.5,1.5 0 1 0 8,6 A1.5,1.5 0 1 0 8,9</Geometry>
+        <Geometry x:Key="UndoIcon">M9,7 L4,12 L9,17 M5,12 H14 C18,12 20,15 20,19</Geometry>
+        <Geometry x:Key="RedoIcon">M15,7 L20,12 L15,17 M19,12 H10 C6,12 4,15 4,19</Geometry>
+        <Geometry x:Key="SaveIcon">M5,3 H17 L21,7 V21 H3 V3 Z M7,3 V9 H16 V3 M7,21 V14 H17 V21</Geometry>
     </Window.Resources>
 
     <Grid>
@@ -74,7 +82,7 @@
                     </Border>
                     <Border Background="#BFFFFFFF" CornerRadius="5" Padding="8,5" Margin="10,0,0,0" VerticalAlignment="Center"
                             BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                        <TextBlock Text="v0.4.0" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="v0.6.0" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
                     </Border>
                 </StackPanel>
                 </Grid>
@@ -82,9 +90,9 @@
         </Border>
 
         <!-- ==================== 主体内容 ==================== -->
-        <TabControl Grid.Row="1" Margin="22,14,22,10">
+        <TabControl x:Name="MainTabs" Grid.Row="1" Margin="22,14,22,10">
             <!-- ========== 文件转换标签页 ========== -->
-            <TabItem Header="文件转换">
+            <TabItem x:Name="ConversionTab" Header="文件转换">
                 <Grid Margin="0,16,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -136,12 +144,24 @@
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-                                    <DataGridTemplateColumn Header="操作" Width="88">
+                                    <DataGridTemplateColumn Header="操作" Width="82">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Button Content="打开" Height="30" Padding="12,0" FontSize="12"
-                                                        Command="{Binding DataContext.OpenOutputCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                        CommandParameter="{Binding}" />
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <Button Height="30" Width="30" ToolTip="打开输出位置" Style="{StaticResource IconButton}"
+                                                            Command="{Binding DataContext.OpenOutputCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}">
+                                                        <Path Data="{StaticResource FolderIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7"
+                                                              Width="15" Height="15" Stretch="Uniform" />
+                                                    </Button>
+                                                    <Button Height="30" Width="30" Margin="5,0,0,0" ToolTip="移除任务" Style="{StaticResource IconButton}"
+                                                            IsEnabled="{Binding DataContext.IsNotBusy, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            Command="{Binding DataContext.RemoveConversionJobCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}">
+                                                        <Path Data="{StaticResource TrashIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7"
+                                                              Width="15" Height="15" Stretch="Uniform" />
+                                                    </Button>
+                                                </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
@@ -259,6 +279,223 @@
                                               StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
                                     </Grid>
                                 </Button>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ========== PDF 编辑标签页 ========== -->
+            <TabItem x:Name="PdfEditorTab" Header="PDF 编辑">
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="224" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="286" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" Effect="{StaticResource CardShadow}">
+                        <StackPanel Margin="15">
+                            <TextBlock Text="编辑文件" FontSize="15" FontWeight="Bold" />
+                            <Button Command="{Binding OpenPdfEditorDocumentCommand}" Style="{StaticResource PrimaryButton}" Height="39" Margin="0,12,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource FolderIcon}" Stroke="White" StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform" Margin="0,0,7,0" />
+                                    <TextBlock Text="打开 PDF" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Text="{Binding PdfEditorFileName}" Margin="0,9,0,0" FontSize="11.5" Foreground="{StaticResource MutedBrush}"
+                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding PdfEditorPath}" />
+
+                            <Separator Margin="0,17" />
+                            <TextBlock Text="页面工具" FontSize="14" FontWeight="SemiBold" />
+                            <Button Command="{Binding SelectPdfEditorToolCommand}" CommandParameter="{x:Static local:PdfEditorTool.Select}"
+                                    Margin="0,10,0,0" Height="38" HorizontalContentAlignment="Left">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedPdfEditorTool}" Value="{x:Static local:PdfEditorTool.Select}">
+                                                <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}" />
+                                                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource EditIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" />
+                                    <TextBlock Text="选择 / 移动" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding SelectPdfEditorToolCommand}" CommandParameter="{x:Static local:PdfEditorTool.AddText}"
+                                    Margin="0,8,0,0" Height="38" HorizontalContentAlignment="Left">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedPdfEditorTool}" Value="{x:Static local:PdfEditorTool.AddText}">
+                                                <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}" />
+                                                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource TextIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" />
+                                    <TextBlock Text="添加文字" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding SelectPdfEditorToolCommand}" CommandParameter="{x:Static local:PdfEditorTool.ReplaceText}"
+                                    Margin="0,8,0,0" Height="38" HorizontalContentAlignment="Left">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedPdfEditorTool}" Value="{x:Static local:PdfEditorTool.ReplaceText}">
+                                                <Setter Property="Background" Value="{StaticResource SecondaryLightBrush}" />
+                                                <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource SearchIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" />
+                                    <TextBlock Text="替换原文字" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding SelectPdfEditorToolCommand}" CommandParameter="{x:Static local:PdfEditorTool.AddFormula}"
+                                    Margin="0,8,0,0" Height="38" HorizontalContentAlignment="Left">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedPdfEditorTool}" Value="{x:Static local:PdfEditorTool.AddFormula}">
+                                                <Setter Property="Background" Value="{StaticResource SecondaryLightBrush}" />
+                                                <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource FormulaIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                          Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" />
+                                    <TextBlock Text="添加公式" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddPdfImageCommand}" Margin="0,8,0,0" Height="38" HorizontalContentAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource ImageIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.6" Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" />
+                                    <TextBlock Text="添加图片" />
+                                </StackPanel>
+                            </Button>
+
+                            <Separator Margin="0,17" />
+                            <TextBlock Text="历史" FontSize="14" FontWeight="SemiBold" />
+                            <StackPanel Orientation="Horizontal" Margin="0,9,0,0">
+                                <Button Command="{Binding UndoPdfEditCommand}" IsEnabled="{Binding CanUndoPdfEdit}" ToolTip="撤销 (Ctrl+Z)" Style="{StaticResource IconButton}" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource UndoIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.8" Width="17" Height="17" Stretch="Uniform" />
+                                </Button>
+                                <Button Command="{Binding RedoPdfEditCommand}" IsEnabled="{Binding CanRedoPdfEdit}" ToolTip="重做 (Ctrl+Y)" Style="{StaticResource IconButton}">
+                                    <Path Data="{StaticResource RedoIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.8" Width="17" Height="17" Stretch="Uniform" />
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="{StaticResource PreviewBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" ClipToBounds="True" Effect="{StaticResource CardShadow}">
+                        <local:PdfEditorSurface />
+                    </Border>
+
+                    <Border Grid.Column="4" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8" ClipToBounds="True" Effect="{StaticResource CardShadow}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ModernScrollViewer}">
+                                <StackPanel Margin="16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="对象属性" FontSize="15" FontWeight="Bold" />
+                                            <TextBlock Text="{Binding PdfEditPanelSubtitle}" FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Command="{Binding DeleteSelectedPdfEditCommand}" IsEnabled="{Binding HasSelectedPdfEdit}"
+                                                ToolTip="删除对象 (Delete)" Style="{StaticResource IconButton}">
+                                            <Path Data="{StaticResource TrashIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.7" Width="16" Height="16" Stretch="Uniform" />
+                                        </Button>
+                                    </Grid>
+
+                                    <TextBlock Text="{Binding PdfEditContentLabel}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource InkSoftBrush}" Margin="0,18,0,7" />
+                                    <TextBox Text="{Binding PdfEditDraftText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanEditSelectedPdfText}"
+                                             Height="92" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="10,8" />
+
+                                    <StackPanel Visibility="{Binding SelectedPdfEditIsFormula, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <TextBlock Text="公式预览" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource InkSoftBrush}" Margin="0,14,0,7" />
+                                        <Border MinHeight="70" MaxHeight="130" Background="#FFFDFDFD" BorderBrush="{StaticResource BorderBrush}"
+                                                BorderThickness="1" CornerRadius="6" Padding="8">
+                                            <Image Source="{Binding PdfFormulaPreviewImage}" Stretch="Uniform" />
+                                        </Border>
+                                        <TextBlock Text="{Binding PdfFormulaError}" Foreground="{StaticResource WarningBrush}" FontSize="11"
+                                                   TextWrapping="Wrap" Margin="0,7,0,0"
+                                                   Visibility="{Binding HasPdfFormulaError, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    </StackPanel>
+
+                                    <TextBlock Text="字号" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource InkSoftBrush}" Margin="0,15,0,7" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="62" /></Grid.ColumnDefinitions>
+                                        <Slider Minimum="5" Maximum="72" TickFrequency="1" IsSnapToTickEnabled="False"
+                                                Value="{Binding PdfEditDraftFontSize}" IsEnabled="{Binding CanEditSelectedPdfText}" VerticalAlignment="Center" />
+                                        <TextBox Grid.Column="1" Text="{Binding PdfEditDraftFontSize, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,0"
+                                                 IsEnabled="{Binding CanEditSelectedPdfText}" TextAlignment="Center" Padding="4,0" />
+                                    </Grid>
+                                    <Button Command="{Binding ApplyPdfEditPropertiesCommand}" IsEnabled="{Binding CanApplyPdfEditProperties}" Style="{StaticResource SecondaryButton}"
+                                            Height="38" Margin="0,12,0,0" Content="{Binding PdfEditApplyLabel}" />
+
+                                    <Separator Margin="0,18" />
+                                    <TextBlock Text="编辑对象" FontSize="14" FontWeight="SemiBold" />
+                                    <ListBox ItemsSource="{Binding PdfEdits}" SelectedItem="{Binding SelectedPdfEdit}" Margin="0,9,0,0" MaxHeight="150">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" FontSize="12" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding PageNumber, StringFormat=第 {0} 页}" Foreground="{StaticResource MutedBrush}" FontSize="10.5" Margin="8,0,0,0" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <Border Background="{StaticResource WarningLightBrush}" BorderBrush="{StaticResource WarningBrush}" BorderThickness="1"
+                                            CornerRadius="7" Padding="10,8" Margin="0,16,0,0">
+                                        <TextBlock Text="原生保存会尝试从内容流删除所选原文字；复杂 PDF 会停止并提示。普通保存兼容性最高，安全保存会把改动页转成 300 DPI 图像。"
+                                                   Foreground="{StaticResource WarningBrush}" FontSize="11" TextWrapping="Wrap" />
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <Border Grid.Row="1" Background="#FCFFFFFF" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="16,13">
+                                <StackPanel>
+                                    <Button Command="{Binding SavePdfOverlayCommand}" IsEnabled="{Binding HasPdfEdits}" Style="{StaticResource PrimaryButton}" Height="42">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="{StaticResource SaveIcon}" Stroke="White" StrokeThickness="1.6" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" />
+                                            <TextBlock Text="普通保存" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding SavePdfNativeCommand}" IsEnabled="{Binding HasPdfEdits}" Height="40" Margin="0,8,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="{StaticResource SaveIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.6" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" />
+                                            <TextBlock Text="原生保存" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding SavePdfSecureCommand}" IsEnabled="{Binding HasPdfEdits}" Height="40" Margin="0,8,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="{StaticResource ShieldIcon}" Stroke="{StaticResource TextBrush}" StrokeThickness="1.6" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" />
+                                            <TextBlock Text="安全保存" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
                             </Border>
                         </Grid>
                     </Border>
